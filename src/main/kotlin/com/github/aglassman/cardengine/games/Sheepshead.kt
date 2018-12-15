@@ -56,16 +56,8 @@ class Sheepshead(
   }
 
   private fun playCard(player: Player, cardIndex: Int) {
-    if(gameComplete()) {
-      throw GameException("Game is complete, cannot play card.")
-    }
-
-    val currentTrick = tricks.firstOrNull { !it.trickTaken() } ?: Trick(players.size)
-
     val card = player.requestCard(cardIndex)
-
-    currentTrick.playCard(player, card)
-
+    trickTracker.currentTrick().playCard(player, card)
   }
 
   override fun availableActions(player: Player) = listAvailableActions(player).map { it.name }
@@ -317,7 +309,20 @@ class TrickTracker(
 
   fun playIsComplete() = tricks.filter { it.trickTaken() }.size == playerOrder.size
 
-  fun currentTrick() = tricks.firstOrNull { !it.trickTaken() }
+  fun currentTrick(): Trick {
+    if(playIsComplete()) {
+      throw GameException("No current trick as play has completed.")
+    }
+
+    val currentTrick = tricks.firstOrNull { !it.trickTaken() }
+
+    return if(currentTrick != null) {
+      currentTrick
+    } else {
+      newTrick()
+    }
+
+  }
 
   fun waitingOnPlayer() = currentTrick()?.let { playerOrder[it.currentSeatIndex()] }
 
@@ -327,6 +332,12 @@ class TrickTracker(
     } else {
       tricks.add(Trick(playerOrder.size))
     }
+  }
+
+  private fun newTrick(): Trick {
+    val newTrick = Trick(playerOrder.size)
+    tricks.add(newTrick)
+    return newTrick
   }
 
 }
