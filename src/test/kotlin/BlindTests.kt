@@ -1,9 +1,9 @@
+
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Face
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit
 import com.github.aglassman.cardengine.games.Blind
-import com.github.aglassman.cardengine.games.Teams
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -12,15 +12,15 @@ class BlindTests {
   @Test
   fun setupBlind() {
 
-    val andy = Player("Andy")
-    val brad = Player("Brad")
+    val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     assertFalse(blind.isAvailable())
     assertNull(blind.option())
@@ -37,15 +37,15 @@ class BlindTests {
   @Test
   public fun setupBlind_testSettingTwice() {
 
-    val andy = Player("Andy")
-    val brad = Player("Brad")
+    val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     assertFalse(blind.isAvailable())
     assertNull(blind.option())
@@ -74,15 +74,15 @@ class BlindTests {
   @Test
   fun setupBlind_testFirstOption() {
 
-    val andy = Player("Andy") // Dealer
     val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     blind.setBlind(
         listOf(
@@ -111,15 +111,15 @@ class BlindTests {
   @Test
   fun setupBlind_testPassing() {
 
-    val andy = Player("Andy") // Dealer
     val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     blind.setBlind(
         listOf(
@@ -161,15 +161,15 @@ class BlindTests {
   @Test
   fun setupBlind_testPickingOutOfOrder_expectException() {
 
-    val andy = Player("Andy") // Dealer
     val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     blind.setBlind(
         listOf(
@@ -213,15 +213,15 @@ class BlindTests {
   @Test
   fun setupBlind_testBlindStateAfterPick() {
 
-    val andy = Player("Andy") // Dealer
     val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     blind.setBlind(
         listOf(
@@ -272,15 +272,15 @@ class BlindTests {
   @Test
   fun setupBlind_testGoToLastOption() {
 
-    val andy = Player("Andy") // Dealer
     val brad = Player("Brad") // First Option
     val carl = Player("Carl")
     val deryl = Player("Deryl")
     val earl = Player("Earl")
+    val andy = Player("Andy") // Dealer
 
-    val players = listOf(andy, brad, carl, deryl, earl)
+    val players = listOf(brad, carl, deryl, earl, andy)
 
-    val blind = Blind(players, Teams())
+    val blind = Blind(players)
 
     blind.setBlind(
         listOf(

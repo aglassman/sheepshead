@@ -27,21 +27,8 @@ enum class Face(val unicode: String) {
 class Card(
     val suit: Suit,
     val face: Face
-) : Comparable<Card> {
+) {
 
-  fun isTrump() =
-      (suit == Suit.DIAMOND)
-          || (face == Face.QUEEN)
-          || (face == Face.JACK)
-
-  override fun compareTo(other: Card): Int {
-    return if (this.isTrump() && !other.isTrump()) {
-      1
-    } else {
-      this.face.ordinal.compareTo(other.face.ordinal)
-    }
-
-  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

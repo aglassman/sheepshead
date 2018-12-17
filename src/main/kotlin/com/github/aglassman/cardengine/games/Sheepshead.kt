@@ -4,16 +4,25 @@ import com.github.aglassman.cardengine.*
 import com.github.aglassman.cardengine.games.Blind.Option.*
 import com.github.aglassman.cardengine.games.Sheepshead.Action.*
 import com.github.aglassman.cardengine.games.Sheepshead.Scoring.normal
+import java.util.Collections.emptyList
+import java.util.Collections.rotate
 
 class Sheepshead(
     private val players: List<Player>,
     private val deck: Deck = SheepsheadDeck(),
-    gameNumber: Int = 1
+    gameNumber: Int = 1,
+    val partnerStyle: PartnerStyle = PartnerStyle.jackOfDiamonds
 ) : Game {
+
+  init {
+    if(gameNumber < 1) {
+      throw GameException("gameNumber cannot be < 1")
+    }
+  }
 
   override fun gameType() = "sheepshead"
 
-  enum class PartnerStyle { calledAce, jackOfDiamonds }
+  enum class PartnerStyle { goAlone, calledAce, jackOfDiamonds }
 
   enum class Action { deal, peek, pick, pass, bury, callLeaster, callDoubler, playCard, goAlone, declareUndercard, callAce }
 
@@ -21,21 +30,26 @@ class Sheepshead(
 
   private val scoring: Scoring = normal
 
-  private val playerOrder = players.subList((gameNumber - 1) % players.size, players.size).plus(players.subList(0, (gameNumber - 1) % players.size))
+  private val playerOrder = players.toMutableList().apply { rotate(this, -1 * (gameNumber)) }
 
   private val trickTracker = TrickTracker(playerOrder)
 
-  override fun currentPlayer() = trickTracker.waitingOnPlayer() ?: dealer
+  override fun currentPlayer(): Player {
+    return if(!trickTracker.playHasBegun()) {
+      dealer
+    } else {
+      trickTracker.waitingOnPlayer()
+    }
+  }
 
-  private val dealer = playerOrder.first()
+  private val dealer = playerOrder.last()
 
   override fun dealer() = dealer
 
-  val teams = Teams()
+  var teams: Teams? = null
 
   var blind = Blind(
-      playerOrder,
-      teams
+      playerOrder
   )
 
   var burriedCards = BurriedCards()
@@ -58,6 +72,7 @@ class Sheepshead(
   private fun playCard(player: Player, cardIndex: Int) {
     val card = player.requestCard(cardIndex)
     trickTracker.currentTrick().playCard(player, card)
+    println("$player played ${card.toUnicodeString()}")
   }
 
   override fun availableActions(player: Player) = listAvailableActions(player).map { it.name }
@@ -72,7 +87,7 @@ class Sheepshead(
 
       // blind
       !blind.blindRoundComplete() -> blindActions(player)
-      !trickTracker.playHasBegun() && player == teams.picker -> listOf(bury)
+      !trickTracker.playHasBegun() && player == teams?.picker -> listOf(bury)
       player.isPlayer(trickTracker.waitingOnPlayer()) -> listOf(playCard)
 
       // play
@@ -83,7 +98,7 @@ class Sheepshead(
 
   private fun blindActions(player: Player): List<Action> {
     return when {
-      blind.isAvailable() && blind.hasLastOption(player) -> listOf(peek, pick, callLeaster, callDoubler)
+      blind.isAvailable() && blind.playerHasOption(player) && blind.hasLastOption(player) -> listOf(peek, pick, callLeaster, callDoubler)
       blind.isAvailable() && blind.playerHasOption(player) -> listOf(pick, pass, peek)
       else -> emptyList()
     }
@@ -112,6 +127,7 @@ class Sheepshead(
       }
       pick -> {
         blind.pick(player)
+        teams = Teams(partnerStyle, player)
         log(player, actionToPerform)
       }
       peek -> {
@@ -145,6 +161,42 @@ class Sheepshead(
   }
 }
 
+private fun Card.isTrump() =
+    (this.suit == Suit.DIAMOND)
+        || (this.face == Face.QUEEN)
+        || (this.face == Face.JACK)
+
+val powerList = listOf(
+    Face.SEVEN,
+    Face.EIGHT,
+    Face.NINE,
+    Face.KING,
+    Face.TEN,
+    Face.ACE,
+    Face.JACK,
+    Face.QUEEN)
+
+private fun Card.power(): Int {
+  return powerList.indexOf(this.face)
+}
+
+
+class CardComparitor: Comparator<Card> {
+  override fun compare(o1: Card?, o2: Card?): Int {
+
+    if(o1 == null || o2 == null) {
+      throw GameException("Cannot sort null cards.")
+    }
+
+    return if (o1.isTrump() && !o2.isTrump()) {
+      1
+    } else {
+      o1.power().compareTo(o2.power())
+    }
+  }
+
+}
+
 class SheepsheadDeck : Deck(
     deck = Suit.values()
         .map { it to Face.values() }
@@ -176,6 +228,13 @@ val pointMap = mapOf(
     Face.QUEEN to 3
 )
 
+val suitMap = mapOf(
+    Suit.CLUB to "clubs",
+    Suit.DIAMOND to "diamonds",
+    Suit.HEART to "hearts",
+    Suit.SPADE to "spades"
+)
+
 class FiveHandDeal(
     private val deck: Deck,
     private val playerOrder: List<Player>,
@@ -196,8 +255,7 @@ class FiveHandDeal(
 }
 
 class Blind(
-    playerOrder: List<Player>,
-    val teams: Teams
+    playerOrder: List<Player>
 ) {
 
   enum class Option { owait, opass, opick, oskip }
@@ -207,9 +265,7 @@ class Blind(
       var pickOption: Option = owait
   )
 
-  private val pickOption: List<PickOption> =
-      (playerOrder.subList(1, playerOrder.size).plus(playerOrder.first()))
-          .map { PickOption(it) }
+  private val pickOption: List<PickOption> = playerOrder.map { PickOption(it) }
 
   private val blind: MutableList<Card> = mutableListOf()
 
@@ -269,7 +325,6 @@ class Blind(
       setOption(player, opick)
       pickOption.filter { it.pickOption == owait }.forEach { it.pickOption = oskip }
       player.recieveCards(blind)
-      teams.picker = player
     } else {
       throw GameException("${player.name} cannot pick as ${option()?.name} currently has the option.")
     }
@@ -346,19 +401,29 @@ class Trick(
     private val numberOfPlayers: Int
 ) {
 
-  private val playedCards: List<Pair<Player, Card>> = mutableListOf()
+  private val playedCards: MutableList<Pair<Player, Card>> = mutableListOf()
 
   fun currentSeatIndex() = playedCards.size
 
   fun trickTaken() = playedCards.size == numberOfPlayers
 
   fun playCard(player: Player, card: Card) {
-    playedCards.plus(player to card)
+     playedCards.add(player to card)
   }
 
 }
 
-class Teams() {
-  var picker: Player?  = null
-  var partner: Player? = null
+class Teams(
+    val style: Sheepshead.PartnerStyle,
+    val picker: Player
+) {
+
+  private var _partner: Player? = null
+
+  fun partner() = _partner
+
+  fun setPartner(player: Player) {
+    _partner = player
+  }
+
 }

@@ -60,7 +60,7 @@ class SheepsheadTurnTest {
 
   // For reference
 
-  val earlsExpectedHand = listOf(
+  val andysExpectedHand = listOf(
       Card(CLUB, TEN),
       Card(DIAMOND, EIGHT),
       Card(DIAMOND, TEN),
@@ -68,7 +68,7 @@ class SheepsheadTurnTest {
       Card(HEART, JACK),
       Card(DIAMOND, SEVEN))
 
-  val andysExpectedHand = listOf(
+  val bradsExpectedHand = listOf(
       Card(SPADE, JACK),
       Card(CLUB, JACK),
       Card(HEART, KING),
@@ -76,7 +76,7 @@ class SheepsheadTurnTest {
       Card(HEART, SEVEN),
       Card(SPADE, NINE))
 
-  val bradsExpectedHand = listOf(
+  val carlsExpectedHand = listOf(
       Card(CLUB, ACE),
       Card(SPADE, TEN),
       Card(SPADE, SEVEN),
@@ -84,7 +84,7 @@ class SheepsheadTurnTest {
       Card(SPADE, EIGHT),
       Card(CLUB, SEVEN))
 
-  val carlsExpectedHand = listOf(
+  val derylsExpectedHand = listOf(
       Card(CLUB, EIGHT),
       Card(CLUB, QUEEN),
       Card(DIAMOND, KING),
@@ -92,7 +92,7 @@ class SheepsheadTurnTest {
       Card(DIAMOND, ACE),
       Card(DIAMOND, QUEEN))
 
-  val derylsExpectedHand = listOf(
+  val earlsExpectedHand = listOf(
       Card(SPADE, ACE),
       Card(CLUB, NINE),
       Card(HEART, EIGHT),
@@ -136,7 +136,23 @@ class SheepsheadTurnTest {
 
       assertEquals(0, availableActions(andy).size)
 
+      players
+          .filter { it != earl }
+          .forEach {
+            val actions = game.availableActions(it)
+            println("Pre Deal: Actions for $it: $actions")
+            assertTrue(actions.isEmpty(), "$it should not have any pre-deal available actions, but had $actions.")
+          }
+
       performAction<Any?>(earl, "deal")
+
+      players
+          .filter { it != andy }
+          .forEach {
+            val actions = game.availableActions(it)
+            println("Post Deal: Actions for $it: $actions")
+            assertTrue(actions.isEmpty(), "$it should not have any post-deal available actions, but had $actions.")
+          }
 
     }
 
@@ -156,8 +172,9 @@ class SheepsheadTurnTest {
 
     game.performAction<Any?>(andy, "pass")
     game.performAction<Any?>(brad, "pass")
+    game.performAction<Any?>(carl, "pass")
 
-    val carlsExpectedHandAfterPicking = listOf(
+    val derylsExpectedHandAfterPicking = listOf(
         // dealt hand
         Card(CLUB, EIGHT),
         Card(CLUB, QUEEN),
@@ -169,7 +186,7 @@ class SheepsheadTurnTest {
         Card(HEART, ACE), // bury
         Card(DIAMOND, NINE))
 
-    val carlsExpectedHandAfterBury = listOf(
+    val derylsExpectedHandAfterBury = listOf(
         Card(CLUB, EIGHT),
         Card(CLUB, QUEEN),
         Card(DIAMOND, KING),
@@ -179,10 +196,10 @@ class SheepsheadTurnTest {
         Card(HEART, ACE),
         Card(DIAMOND, NINE))
 
-    with(carl) {
+    with(deryl) {
       assertEquals(6, hand().size)
 
-      assertEquals(carlsExpectedHand, hand())
+      assertEquals(derylsExpectedHand, hand())
 
       val blindPeek = game.performAction<List<Card>>(this, "peek") ?: fail("peek failed")
 
@@ -191,10 +208,12 @@ class SheepsheadTurnTest {
       game.performAction<Any?>(this, "pick")
 
       assertEquals(8, hand().size)
-      assertTrue(hand().containsAll(carlsExpectedHandAfterPicking))
+      assertEquals(derylsExpectedHandAfterPicking, this.hand())
 
       assertEquals(Card(DIAMOND, ACE), hand()[4])
       assertEquals(Card(HEART, ACE), hand()[6])
+
+      assertTrue(game.availableActions(this).contains("bury"), "Deryl should be able to bury.")
 
       try {
         game.performAction<Any?>(this, "bury", listOf(2, 44))
@@ -221,7 +240,7 @@ class SheepsheadTurnTest {
   }
 
   @Test
-  fun startSheepshead_deal_passPickupAndCompleteFirstTrick() {
+  fun startSheepshead_deal_passPickupAndPlayFirstCard() {
 
     val andy = Player("Andy")
     val brad = Player("Brad")
@@ -238,15 +257,29 @@ class SheepsheadTurnTest {
         gameNumber = 5
     )
 
+    players
+        .forEach {
+          println("Pre Deal: Actions for $it: ${game.availableActions(it)}")
+        }
+
     game.performAction<Any?>(earl, "deal")
+
+    players
+        .forEach {
+          println("Post Deal: Actions for $it: ${game.availableActions(it)}")
+        }
 
     game.performAction<Any?>(andy, "pass")
     game.performAction<Any?>(brad, "pass")
+    game.performAction<Any?>(carl, "pass")
 
-    game.performAction<Any?>(carl, "pick")
-    game.performAction<Any?>(carl, "bury", listOf(4, 6))
+    game.performAction<Any?>(deryl, "pick")
+    game.performAction<Any?>(deryl, "bury", listOf(4, 6))
 
     // Verify it is Andy's turn
+    assertTrue(game.availableActions(andy).contains("playCard"), "Andy should be able to play a card.")
+
+    // Verify other players cannot play a card
     players
         .filter { it != andy }
         .forEach {
@@ -254,32 +287,33 @@ class SheepsheadTurnTest {
           assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
         }
 
-    assertTrue(game.availableActions(andy).contains("playCard"), "Andy should be able to play a card.")
 
-    // Check Hand
+    // Check Andy's had before a card is play
     assertEquals(
         listOf(
-            Card(SPADE, JACK),
-            Card(CLUB, JACK),
-            Card(HEART, KING),
-            Card(SPADE, KING),
-            Card(HEART, SEVEN),
-            Card(SPADE, NINE)),
+            Card(CLUB, TEN),
+            Card(DIAMOND, EIGHT),
+            Card(DIAMOND, TEN),
+            Card(HEART, NINE),
+            Card(HEART, JACK),
+            Card(DIAMOND, SEVEN)),
         andy.hand())
 
     game.performAction<Any?>(andy, "playCard", 2)
 
-    // Verify card was removed from hand
+    // Verify the correct card was removed from Andy's hand
     assertEquals(
         listOf(
-            Card(SPADE, JACK),
-            Card(CLUB, JACK),
-            Card(SPADE, KING),
-            Card(HEART, SEVEN),
-            Card(SPADE, NINE)),
+            Card(CLUB, TEN),
+            Card(DIAMOND, EIGHT),
+            Card(HEART, NINE),
+            Card(HEART, JACK),
+            Card(DIAMOND, SEVEN)),
         andy.hand())
 
     // Verify it is now Brad's turn
+
+    assertTrue(game.availableActions(brad).contains("playCard"), "It should be Brad's turn now.")
 
     players
         .filter { it != brad }
@@ -288,6 +322,44 @@ class SheepsheadTurnTest {
           assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
         }
 
-    assertTrue(game.availableActions(brad).contains("playCard"))
+  }
+
+  @Test
+  fun startSheepshead_deal_playCard_enforceSuit() {
+
+    val andy = Player("Andy")
+    val brad = Player("Brad")
+    val carl = Player("Carl")
+    val deryl = Player("Deryl")
+    val earl = Player("Earl")
+
+    val players = listOf(andy, brad, carl, deryl, earl)
+
+    // Game 2, so Brad should be dealer
+    val game = Sheepshead(
+        players = players,
+        deck = testSheepsDeck,
+        gameNumber = 5
+    )
+
+    with(game) {
+      performAction<Any?>(earl, "deal")
+      performAction<Any?>(andy, "pass")
+      performAction<Any?>(brad, "pass")
+      performAction<Any?>(carl, "pass")
+      performAction<Any?>(deryl, "pick")
+      performAction<Any?>(deryl, "bury", listOf(4, 6))
+      performAction<Any?>(andy, "playCard", 2)
+
+      try {
+        performAction<Any?>(brad, "playCard", 2)
+        fail<Any?>("Brad should not be able to play the King of hearts as trump was lead, and he has trump.")
+      } catch (e: Exception) {
+        assertEquals("Brad cannot play K♡ as trump was lead, and Brad has trump remaining.", e.message)
+      }
+    }
+
+
+
   }
 }
