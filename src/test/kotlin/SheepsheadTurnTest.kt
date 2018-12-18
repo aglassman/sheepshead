@@ -1,3 +1,4 @@
+
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
@@ -355,11 +356,68 @@ class SheepsheadTurnTest {
         performAction<Any?>(brad, "playCard", 2)
         fail<Any?>("Brad should not be able to play the King of hearts as trump was lead, and he has trump.")
       } catch (e: Exception) {
-        assertEquals("Brad cannot play K♡ as trump was lead, and Brad has trump remaining.", e.message)
+        assertEquals("Brad cannot play K♡ as Trump was lead, and Brad has Trump remaining.", e.message)
       }
     }
 
+  }
 
+  @Test
+  fun startSheepshead_deal_playWholeTrick_verifyWinner_verifyNextLead() {
+
+    val andy = Player("Andy")
+    val brad = Player("Brad")
+    val carl = Player("Carl")
+    val deryl = Player("Deryl")
+    val earl = Player("Earl")
+
+    val players = listOf(andy, brad, carl, deryl, earl)
+
+    // Game 2, so Brad should be dealer
+    val game = Sheepshead(
+        players = players,
+        deck = testSheepsDeck,
+        gameNumber = 5
+    )
+
+    with(game) {
+      performAction<Any?>(earl, "deal")
+      performAction<Any?>(andy, "pass")
+      performAction<Any?>(brad, "pass")
+      performAction<Any?>(carl, "pass")
+      performAction<Any?>(deryl, "pick")
+      performAction<Any?>(deryl, "bury", listOf(4, 6))
+
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+
+      assertNull(state<Map<String,String>>("lastTrickDetails"))
+
+      performAction<Any?>(andy,  "playCard", 3)
+      performAction<Any?>(brad,  "playCard", 4)
+      performAction<Any?>(carl,  "playCard", 3)
+      performAction<Any?>(deryl, "playCard", 2)
+      performAction<Any?>(earl,  "playCard", 2)
+
+      val lastTrick = state<List<Triple<Player, Card, Boolean>>>("lastTrickDetails") ?: throw RuntimeException("lastTrick should not be null")
+
+      val trickWinner = lastTrick
+          .first { it.third }
+          .let { it.first }
+
+      assertEquals(deryl, trickWinner, "Trick winner should be Deryl.")
+
+      assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
+
+      assertTrue(game.availableActions(deryl).contains("playCard"), "It should be Deryl's turn now since he won the last trick.")
+
+      players
+          .filter { it != deryl }
+          .forEach {
+            println("Actions for $it: ${game.availableActions(it)}")
+            assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
+          }
+
+    }
 
   }
 }

@@ -36,15 +36,13 @@ class Sheepshead(
 
   override fun currentPlayer(): Player {
     return if(!trickTracker.playHasBegun()) {
-      dealer
+      dealer()
     } else {
       trickTracker.waitingOnPlayer()
     }
   }
 
-  private val dealer = playerOrder.last()
-
-  override fun dealer() = dealer
+  override fun dealer() = playerOrder.last()
 
   var teams: Teams? = null
 
@@ -73,13 +71,14 @@ class Sheepshead(
     val card = player.requestCard(cardIndex)
     trickTracker.currentTrick().playCard(player, card)
     println("$player played ${card.toUnicodeString()}")
+    trickTracker.currentTrick() // Will trigger creation of next trick if applicable.
   }
 
   override fun availableActions(player: Player) = listAvailableActions(player).map { it.name }
 
   private fun listAvailableActions(player: Player): List<Action> {
 
-    val isDealer = player.isPlayer(dealer)
+    val isDealer = player.isPlayer(dealer())
 
     return when {
       // deal
@@ -156,15 +155,31 @@ class Sheepshead(
   override fun <T> state(key: String): T {
     return when (key) {
       "blind" -> blind.peek() as T
+      "lastTrickDetails" -> trickTracker.lastTrickDetails() as T
       else -> throw GameStateException("No game state found for key: ($key)")
     }
   }
 }
 
-private fun Card.isTrump() =
+private fun Player.hasSuitInHand(sheepsheadSuit: SheepsheadSuit): Boolean {
+  return this.hand().firstOrNull { it.sheepsheadSuit() == sheepsheadSuit } != null
+}
+
+enum class SheepsheadSuit {Trump, Club, Spade, Heart }
+
+private fun Card.sheepsheadSuit(): SheepsheadSuit {
+  return when {
     (this.suit == Suit.DIAMOND)
         || (this.face == Face.QUEEN)
-        || (this.face == Face.JACK)
+        || (this.face == Face.JACK) -> SheepsheadSuit.Trump
+    this.suit == Suit.CLUB -> SheepsheadSuit.Club
+    this.suit == Suit.SPADE -> SheepsheadSuit.Spade
+    this.suit == Suit.HEART -> SheepsheadSuit.Heart
+    else -> throw GameException("Suit.${this.suit} could not be mapped to a SheepsheadSuit")
+  }
+}
+
+private fun Card.isTrump() = this.sheepsheadSuit() == SheepsheadSuit.Trump
 
 val powerList = listOf(
     Face.SEVEN,
@@ -355,14 +370,16 @@ class BurriedCards {
 }
 
 class TrickTracker(
-    val playerOrder: List<Player>
+    playerOrder: List<Player>
 ) {
+
+  var trickPlayerOrder = playerOrder.toMutableList()
 
   private val tricks: MutableList<Trick> = mutableListOf()
 
   fun playHasBegun() = tricks.size > 0
 
-  fun playIsComplete() = tricks.filter { it.trickTaken() }.size == playerOrder.size
+  fun playIsComplete() = tricks.filter { it.trickTaken() }.size == trickPlayerOrder.size
 
   fun currentTrick(): Trick {
     if(playIsComplete()) {
@@ -379,20 +396,51 @@ class TrickTracker(
 
   }
 
-  fun waitingOnPlayer() = currentTrick()?.let { playerOrder[it.currentSeatIndex()] }
+  fun waitingOnPlayer() = currentTrick()?.let { trickPlayerOrder[it.currentSeatIndex()] }
 
   fun beginPlay() {
     if(playHasBegun()) {
       throw GameException("Play has already begun.")
     } else {
-      tricks.add(Trick(playerOrder.size))
+      tricks.add(Trick(trickPlayerOrder.size))
     }
   }
 
   private fun newTrick(): Trick {
-    val newTrick = Trick(playerOrder.size)
+    val lastTrick = lastTrick()
+
+    if(lastTrick != null) {
+      // rotate order so trick winner is first for next trick
+      rotate(trickPlayerOrder, -1 * trickPlayerOrder.indexOf(lastTrick.trickWinner()))
+    }
+
+    val newTrick = Trick(trickPlayerOrder.size)
     tricks.add(newTrick)
     return newTrick
+  }
+
+  fun lastTrick(): Trick? {
+    return tricks
+        .filter { it.trickTaken() }
+        .lastOrNull()
+  }
+
+  /**
+   * Returns a list of triples representing the order of the last completed trick, or null if no
+   * tricks have been completed yet.
+   * first: player who played the card
+   * second: the card played
+   * third: true if the card won the trick
+   */
+  fun lastTrickDetails(): List<Triple<Player,Card,Boolean>>? {
+    val lastCompleteTrick = tricks
+        .filter { it.trickTaken() }
+        .lastOrNull()
+
+    return lastCompleteTrick?.let {
+      val trickWinner = it.trickWinner()!!
+      it.playedCards.map { Triple(it.first, it.second, it.first == trickWinner) }
+    }
   }
 
 }
@@ -401,16 +449,41 @@ class Trick(
     private val numberOfPlayers: Int
 ) {
 
-  private val playedCards: MutableList<Pair<Player, Card>> = mutableListOf()
+  internal val playedCards: MutableList<Pair<Player, Card>> = mutableListOf()
 
   fun currentSeatIndex() = playedCards.size
 
   fun trickTaken() = playedCards.size == numberOfPlayers
 
   fun playCard(player: Player, card: Card) {
-     playedCards.add(player to card)
+    if(suitLead() != null
+        &&card.sheepsheadSuit() != suitLead()
+        && player.hasSuitInHand(suitLead()!!))  {
+      throw GameException("$player cannot play ${card.toUnicodeString()} as ${suitLead()} was lead, and $player has ${suitLead()} remaining.")
+    }
+    playedCards.add(player to card)
   }
 
+  fun suitLead(): SheepsheadSuit? = playedCards.firstOrNull().let { it?.second?.sheepsheadSuit() }
+
+  fun trickWinner(): Player? {
+    return if(suitLead() == SheepsheadSuit.Trump) {
+      playedCards
+          .filter { it.second.sheepsheadSuit() == SheepsheadSuit.Trump }
+          .maxBy { it.second.power() }
+          ?.first
+    } else {
+      val maxLeadSuit = playedCards
+          .filter { it.second.sheepsheadSuit() == suitLead() }
+          .maxBy { it.second.power() }
+
+      val maxTrump = playedCards
+          .filter { it.second.sheepsheadSuit() == SheepsheadSuit.Trump }
+          .maxBy { it.second.power() }
+
+      if(maxTrump != null) maxTrump.first else maxLeadSuit?.first
+    }
+  }
 }
 
 class Teams(

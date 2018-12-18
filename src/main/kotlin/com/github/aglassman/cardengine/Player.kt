@@ -9,7 +9,7 @@ class Player(
   fun hand() = _hand.toList()
 
   fun recieveCards(cards: List<Card>) {
-    println("$name recieved ${cards.joinToString { "${it.toUnicodeString()}" }}")
+    // println("$name recieved ${cards.joinToString { "${it.toUnicodeString()}" }}")
     _hand.addAll(cards)
   }
 
