@@ -1,4 +1,4 @@
-package com.github.aglassman.cardengine.games
+package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException

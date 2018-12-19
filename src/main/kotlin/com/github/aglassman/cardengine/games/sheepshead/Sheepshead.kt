@@ -1,7 +1,7 @@
-package com.github.aglassman.cardengine.games
+package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.*
-import com.github.aglassman.cardengine.games.Action.*
+import com.github.aglassman.cardengine.games.sheepshead.Action.*
 import java.util.Collections.emptyList
 import java.util.Collections.rotate
 

@@ -2,7 +2,7 @@ import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Face
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit
-import com.github.aglassman.cardengine.games.Trick
+import com.github.aglassman.cardengine.games.sheepshead.Trick
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

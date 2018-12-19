@@ -1,4 +1,4 @@
-package com.github.aglassman.cardengine.games
+package com.github.aglassman.cardengine.games.sheepshead
 
 enum class PartnerStyle {
   goAlone,

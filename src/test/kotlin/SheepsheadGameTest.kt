@@ -9,7 +9,7 @@ import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class SheepsheadTurnTest {
+class SheepsheadGameTest {
 
 
   val testSheepsDeck = Deck(

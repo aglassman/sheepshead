@@ -1,5 +1,5 @@
 import com.github.aglassman.cardengine.*
-import com.github.aglassman.cardengine.games.Sheepshead
+import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

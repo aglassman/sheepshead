@@ -1,4 +1,4 @@
-package com.github.aglassman.cardengine.games
+package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Player

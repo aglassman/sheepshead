@@ -3,7 +3,7 @@ import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Face
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit
-import com.github.aglassman.cardengine.games.Blind
+import com.github.aglassman.cardengine.games.sheepshead.Blind
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

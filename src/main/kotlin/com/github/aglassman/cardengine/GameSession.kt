@@ -1,6 +1,6 @@
 package com.github.aglassman.cardengine
 
-import com.github.aglassman.cardengine.games.Sheepshead
+import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 
 
 class GameSession(
