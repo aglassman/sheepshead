@@ -123,6 +123,10 @@ class SheepsheadTurnTest {
         gameNumber = 5
     )
 
+    println(game.describeAction("deal"))
+    println(game.describeAction("pass"))
+    println(game.describeAction("peek"))
+
     with(game) {
 
       assertEquals("Earl", game.dealer().name, "Earl should be the dealer.")

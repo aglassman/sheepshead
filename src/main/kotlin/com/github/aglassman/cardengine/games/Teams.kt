@@ -4,7 +4,7 @@ import com.github.aglassman.cardengine.Player
 
 
 class Teams(
-    val style: Sheepshead.PartnerStyle,
+    val style: PartnerStyle,
     val picker: Player
 ) {
 

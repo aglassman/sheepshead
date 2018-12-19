@@ -69,7 +69,7 @@ class TrickTracker(
    * second: the card played
    * third: true if the card won the trick
    */
-  fun lastTrickDetails(): List<Triple<Player, Card,Boolean>>? {
+  fun lastTrickDetails(): TrickDetails? {
     val lastCompleteTrick = tricks
         .filter { it.trickTaken() }
         .lastOrNull()
@@ -81,3 +81,5 @@ class TrickTracker(
   }
 
 }
+
+typealias TrickDetails = List<Triple<Player, Card,Boolean>>

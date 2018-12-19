@@ -1,8 +1,7 @@
 package com.github.aglassman.cardengine.games
 
 import com.github.aglassman.cardengine.*
-import com.github.aglassman.cardengine.games.Sheepshead.Action.*
-import com.github.aglassman.cardengine.games.Sheepshead.Scoring.normal
+import com.github.aglassman.cardengine.games.Action.*
 import java.util.Collections.emptyList
 import java.util.Collections.rotate
 
@@ -21,13 +20,7 @@ class Sheepshead(
 
   override fun gameType() = "sheepshead"
 
-  enum class PartnerStyle { goAlone, calledAce, jackOfDiamonds }
-
-  enum class Action { deal, peek, pick, pass, bury, callLeaster, callDoubler, playCard, goAlone, declareUndercard, callAce }
-
-  enum class Scoring { normal, leaster, doubler }
-
-  private val scoring: Scoring = normal
+  private val scoring: Scoring = Scoring.normal
 
   private val playerOrder = players.toMutableList().apply { rotate(this, -1 * (gameNumber)) }
 
@@ -75,6 +68,14 @@ class Sheepshead(
 
   override fun availableActions(player: Player) = listAvailableActions(player).map { it.name }
 
+  override fun describeAction(action: String): String {
+    return try {
+      Action.valueOf(action).let { "${it.describe(this)}" }
+    } catch (e: Exception) {
+      throw GameException("($action) is not a valid action.")
+    }
+  }
+
   private fun listAvailableActions(player: Player): List<Action> {
 
     val isDealer = player.isPlayer(dealer())
@@ -85,7 +86,7 @@ class Sheepshead(
 
       // blind
       !blind.blindRoundComplete() -> blindActions(player)
-      !trickTracker.playHasBegun() && player == teams?.picker -> listOf(bury)
+      !trickTracker.playHasBegun() && player == teams?.picker -> listOf(Action.bury)
       player.isPlayer(trickTracker.waitingOnPlayer()) -> listOf(playCard)
 
       // play
@@ -96,8 +97,8 @@ class Sheepshead(
 
   private fun blindActions(player: Player): List<Action> {
     return when {
-      blind.isAvailable() && blind.playerHasOption(player) && blind.hasLastOption(player) -> listOf(peek, pick, callLeaster, callDoubler)
-      blind.isAvailable() && blind.playerHasOption(player) -> listOf(pick, pass, peek)
+      blind.isAvailable() && blind.playerHasOption(player) && blind.hasLastOption(player) -> listOf(Action.peek, Action.pick, Action.callLeaster, Action.callDoubler)
+      blind.isAvailable() && blind.playerHasOption(player) -> listOf(Action.pick, Action.pass, Action.peek)
       else -> emptyList()
     }
   }

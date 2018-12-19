@@ -17,6 +17,8 @@ interface Game {
 
   fun availableActions(player: Player): List<String>
 
+  fun describeAction(action: String): String
+
   fun <T> performAction(player: Player, action: String, parameters: Any? = null): T?
 
 }

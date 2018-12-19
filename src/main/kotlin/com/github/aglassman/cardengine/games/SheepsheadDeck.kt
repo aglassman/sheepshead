@@ -41,9 +41,6 @@ val suitMap = mapOf(
     Suit.SPADE to "spades"
 )
 
-
-enum class SheepsheadSuit {Trump, Club, Spade, Heart }
-
 internal fun Card.sheepsheadSuit(): SheepsheadSuit {
   return when {
     (this.suit == Suit.DIAMOND)
