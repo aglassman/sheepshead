@@ -27,11 +27,11 @@ val pointMap = mapOf(
     Face.SEVEN to 0,
     Face.EIGHT to 0,
     Face.NINE to 0,
+    Face.JACK to 2,
+    Face.QUEEN to 3,
     Face.KING to 4,
     Face.TEN to 10,
-    Face.ACE to 11,
-    Face.JACK to 2,
-    Face.QUEEN to 3
+    Face.ACE to 11
 )
 
 val suitMap = mapOf(
@@ -65,9 +65,9 @@ val powerList = listOf(
     Face.JACK,
     Face.QUEEN)
 
-internal fun Card.power(): Int {
-  return powerList.indexOf(this.face)
-}
+internal fun Card.power() = powerList.indexOf(this.face)
+
+internal fun Card.points() = pointMap.get(this.face) ?: 0
 
 
 class CardComparitor: Comparator<Card> {

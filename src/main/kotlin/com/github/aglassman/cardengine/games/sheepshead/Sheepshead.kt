@@ -2,6 +2,8 @@ package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.*
 import com.github.aglassman.cardengine.games.sheepshead.Action.*
+import com.github.aglassman.cardengine.games.sheepshead.Scoring.normal
+import org.slf4j.LoggerFactory
 import java.util.Collections.emptyList
 import java.util.Collections.rotate
 
@@ -12,6 +14,10 @@ class Sheepshead(
     val partnerStyle: PartnerStyle = PartnerStyle.jackOfDiamonds
 ) : Game {
 
+  companion object {
+    val LOGGER = LoggerFactory.getLogger(Sheepshead::class.java)
+  }
+
   init {
     if(gameNumber < 1) {
       throw GameException("gameNumber cannot be < 1")
@@ -20,11 +26,16 @@ class Sheepshead(
 
   override fun gameType() = "sheepshead"
 
-  private val scoring: Scoring = Scoring.normal
+  private val scoring: Scoring = normal
 
   private val playerOrder = players.toMutableList().apply { rotate(this, -1 * (gameNumber)) }
 
-  private val trickTracker = TrickTracker(playerOrder)
+  private val trickTracker = TrickTracker(
+      playerOrder = playerOrder,
+      cardsPerHand = when(players.size){
+        5 -> 6
+        else -> 5
+      })
 
   override fun currentPlayer(): Player {
     return if(!trickTracker.playHasBegun()) {
@@ -46,9 +57,7 @@ class Sheepshead(
 
   var cardsDealt = false
 
-  val tricks: List<Trick> = mutableListOf()
-
-  fun gameComplete() = tricks.filter { it.trickTaken() }.size == players.size
+  override fun isComplete() = trickTracker.playIsComplete()
 
   override fun deal() {
     if (players.size == 5) {
@@ -62,7 +71,7 @@ class Sheepshead(
   private fun playCard(player: Player, cardIndex: Int) {
     val card = player.requestCard(cardIndex)
     trickTracker.currentTrick().playCard(player, card)
-    println("$player played ${card.toUnicodeString()}")
+    LOGGER.info("$player played ${card.toUnicodeString()}")
     trickTracker.currentTrick() // Will trigger creation of next trick if applicable.
   }
 
@@ -118,22 +127,27 @@ class Sheepshead(
     return when (actionToPerform) {
       deal -> {
         deal()
+        LOGGER.info("$player dealt")
         log(player, actionToPerform)
       }
       pass -> {
         blind.pass(player)
+        LOGGER.info("$player passed")
         log(player, actionToPerform)
       }
       pick -> {
         blind.pick(player)
-        teams = Teams(partnerStyle, player)
+        LOGGER.info("$player picked")
+        teams = Teams(partnerStyle, player, players)
         log(player, actionToPerform)
       }
       peek -> {
+        LOGGER.info("$player peeked")
         blind.peek(player) as T
       }
       bury -> {
         burriedCards.bury(player, parameters as List<Int>)
+        LOGGER.info("$player burried")
         trickTracker.beginPlay()
         log(player, actionToPerform)
       }
@@ -149,16 +163,36 @@ class Sheepshead(
   private fun <T> log(player: Player, action: Action) = "${player.name} performed ${action.name}" as T
 
   override fun availableStates(): List<String> {
-    return listOf("blind")
+    return mutableListOf<String>()
+        .plus("blind")
+        .let {
+          if(trickTracker.lastTrick() != null)
+            it
+                .plus("lastTrickDetails")
+                .plus("lastTrickWinner")
+          else
+            it }
   }
 
   override fun <T> state(key: String): T {
     return when (key) {
       "blind" -> blind.peek() as T
       "lastTrickDetails" -> trickTracker.lastTrickDetails() as T
+      "lastTrickWinner" -> trickTracker.lastTrick()?.trickWinner() as T
+      "teams" -> teams?.teamList() as T
+      "points" -> points().determinePoints() as T
+      "gameWinner" -> points().determineWinner() as T
+      "score" -> points().determineScore() as T
       else -> throw GameStateException("No game state found for key: ($key)")
     }
   }
+
+  private fun points() = Points(
+      scoring,
+      trickTracker,
+      burriedCards,
+      teams)
+
 }
 
 

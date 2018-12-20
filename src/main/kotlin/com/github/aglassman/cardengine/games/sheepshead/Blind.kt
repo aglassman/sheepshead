@@ -3,11 +3,16 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
+import org.slf4j.LoggerFactory
 
 
 class Blind(
     playerOrder: List<Player>
 ) {
+
+  companion object {
+    val LOGGER = LoggerFactory.getLogger(Blind::class.java)
+  }
 
   enum class Option { owait, opass, opick, oskip }
 
@@ -32,8 +37,9 @@ class Blind(
 
   fun setBlind(blind: List<Card>) {
     if (this.blind.size == 0) {
-      println("Blind recieved ${blind.joinToString { "${it.toUnicodeString()}" }}")
+      // println("Blind recieved ${blind.joinToString { "${it.toUnicodeString()}" }}")
       this.blind.addAll(blind)
+      LOGGER.debug("Blind Set: ${blind.map { it.toUnicodeString() } }")
     } else {
       throw GameException("Blind has already been set.")
     }

@@ -2,10 +2,12 @@
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
-import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
+import com.github.aglassman.cardengine.games.sheepshead.PlayerScores
 import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
+import com.github.aglassman.cardengine.games.sheepshead.Team
+import com.github.aglassman.cardengine.games.sheepshead.TeamPoints
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -105,269 +107,9 @@ class SheepsheadGameTest {
       Card(HEART, ACE),
       Card(DIAMOND, NINE))
 
-  @Test
-  fun startSheepshead_deal_passAndPickupBlind() {
-
-    val andy = Player("Andy")
-    val brad = Player("Brad")
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-
-    val players = listOf(andy, brad, carl, deryl, earl)
-
-    // Game 2, so Brad should be dealer
-    val game = Sheepshead(
-        players = players,
-        deck = testSheepsDeck,
-        gameNumber = 5
-    )
-
-    println(game.describeAction("deal"))
-    println(game.describeAction("pass"))
-    println(game.describeAction("peek"))
-
-    with(game) {
-
-      assertEquals("Earl", game.dealer().name, "Earl should be the dealer.")
-
-      assertEquals("Earl", currentPlayer().name)
-
-      assertFalse(availableActions(andy).contains("deal"), "Andy should not be able to deal.")
-      assertFalse(availableActions(brad).contains("deal"), "Brad should not be able to deal.")
-      assertFalse(availableActions(carl).contains("deal"), "Carl should not be able to deal.")
-      assertFalse(availableActions(deryl).contains("deal"), "Deryl should not be able to deal.")
-      assertTrue(availableActions(earl).contains("deal"), "Earl should  be able to deal.")
-
-      assertEquals(0, availableActions(andy).size)
-
-      players
-          .filter { it != earl }
-          .forEach {
-            val actions = game.availableActions(it)
-            println("Pre Deal: Actions for $it: $actions")
-            assertTrue(actions.isEmpty(), "$it should not have any pre-deal available actions, but had $actions.")
-          }
-
-      performAction<Any?>(earl, "deal")
-
-      players
-          .filter { it != andy }
-          .forEach {
-            val actions = game.availableActions(it)
-            println("Post Deal: Actions for $it: $actions")
-            assertTrue(actions.isEmpty(), "$it should not have any post-deal available actions, but had $actions.")
-          }
-
-    }
-
-    try {
-      game.performAction<Any?>(brad, "pass")
-      fail<Any?>("Brad should not be able to pass, as it was Earl's deal.  Andy has first option.")
-    } catch (e: GameException) {
-      assertEquals("Player Brad cannot perform pass at this time.", e.message)
-    }
-
-    try {
-      game.performAction<Any?>(andy, "random-thing")
-      fail<Any?>("User should not be able to perform a non-existent action.")
-    } catch (e: GameException) {
-      assertEquals("(random-thing) is not a valid action.", e.message)
-    }
-
-    game.performAction<Any?>(andy, "pass")
-    game.performAction<Any?>(brad, "pass")
-    game.performAction<Any?>(carl, "pass")
-
-    val derylsExpectedHandAfterPicking = listOf(
-        // dealt hand
-        Card(CLUB, EIGHT),
-        Card(CLUB, QUEEN),
-        Card(DIAMOND, KING),
-        Card(DIAMOND, JACK),
-        Card(DIAMOND, ACE), // bury
-        Card(DIAMOND, QUEEN),
-        // blind
-        Card(HEART, ACE), // bury
-        Card(DIAMOND, NINE))
-
-    val derylsExpectedHandAfterBury = listOf(
-        Card(CLUB, EIGHT),
-        Card(CLUB, QUEEN),
-        Card(DIAMOND, KING),
-        Card(DIAMOND, JACK),
-        Card(DIAMOND, ACE),
-        Card(DIAMOND, QUEEN),
-        Card(HEART, ACE),
-        Card(DIAMOND, NINE))
-
-    with(deryl) {
-      assertEquals(6, hand().size)
-
-      assertEquals(derylsExpectedHand, hand())
-
-      val blindPeek = game.performAction<List<Card>>(this, "peek") ?: fail("peek failed")
-
-      assertTrue(blindPeek.containsAll(expectedBlind))
-
-      game.performAction<Any?>(this, "pick")
-
-      assertEquals(8, hand().size)
-      assertEquals(derylsExpectedHandAfterPicking, this.hand())
-
-      assertEquals(Card(DIAMOND, ACE), hand()[4])
-      assertEquals(Card(HEART, ACE), hand()[6])
-
-      assertTrue(game.availableActions(this).contains("bury"), "Deryl should be able to bury.")
-
-      try {
-        game.performAction<Any?>(this, "bury", listOf(2, 44))
-        fail<Any?>("Should not have been allowed to bury a card with index 44.")
-      } catch (e: Exception) {
-        assertEquals("Requested card at index 44, but hand only has 8 cards.", e.message)
-      }
-
-      // Bury the Ace of Hearts, and Ace of Diamonds
-      game.performAction<Any?>(this, "bury", listOf(4, 6))
-
-      assertTrue(
-          hand().containsAll(
-              listOf(
-                  Card(CLUB, EIGHT),
-                  Card(CLUB, QUEEN),
-                  Card(DIAMOND, KING),
-                  Card(DIAMOND, JACK),
-                  Card(DIAMOND, QUEEN),
-                  Card(DIAMOND, NINE)
-              )))
-    }
-
-  }
 
   @Test
-  fun startSheepshead_deal_passPickupAndPlayFirstCard() {
-
-    val andy = Player("Andy")
-    val brad = Player("Brad")
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-
-    val players = listOf(andy, brad, carl, deryl, earl)
-
-    // Game 2, so Brad should be dealer
-    val game = Sheepshead(
-        players = players,
-        deck = testSheepsDeck,
-        gameNumber = 5
-    )
-
-    players
-        .forEach {
-          println("Pre Deal: Actions for $it: ${game.availableActions(it)}")
-        }
-
-    game.performAction<Any?>(earl, "deal")
-
-    players
-        .forEach {
-          println("Post Deal: Actions for $it: ${game.availableActions(it)}")
-        }
-
-    game.performAction<Any?>(andy, "pass")
-    game.performAction<Any?>(brad, "pass")
-    game.performAction<Any?>(carl, "pass")
-
-    game.performAction<Any?>(deryl, "pick")
-    game.performAction<Any?>(deryl, "bury", listOf(4, 6))
-
-    // Verify it is Andy's turn
-    assertTrue(game.availableActions(andy).contains("playCard"), "Andy should be able to play a card.")
-
-    // Verify other players cannot play a card
-    players
-        .filter { it != andy }
-        .forEach {
-          println("Actions for $it: ${game.availableActions(it)}")
-          assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
-        }
-
-
-    // Check Andy's had before a card is play
-    assertEquals(
-        listOf(
-            Card(CLUB, TEN),
-            Card(DIAMOND, EIGHT),
-            Card(DIAMOND, TEN),
-            Card(HEART, NINE),
-            Card(HEART, JACK),
-            Card(DIAMOND, SEVEN)),
-        andy.hand())
-
-    game.performAction<Any?>(andy, "playCard", 2)
-
-    // Verify the correct card was removed from Andy's hand
-    assertEquals(
-        listOf(
-            Card(CLUB, TEN),
-            Card(DIAMOND, EIGHT),
-            Card(HEART, NINE),
-            Card(HEART, JACK),
-            Card(DIAMOND, SEVEN)),
-        andy.hand())
-
-    // Verify it is now Brad's turn
-
-    assertTrue(game.availableActions(brad).contains("playCard"), "It should be Brad's turn now.")
-
-    players
-        .filter { it != brad }
-        .forEach {
-          println("Actions for $it: ${game.availableActions(it)}")
-          assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
-        }
-
-  }
-
-  @Test
-  fun startSheepshead_deal_playCard_enforceSuit() {
-
-    val andy = Player("Andy")
-    val brad = Player("Brad")
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-
-    val players = listOf(andy, brad, carl, deryl, earl)
-
-    // Game 2, so Brad should be dealer
-    val game = Sheepshead(
-        players = players,
-        deck = testSheepsDeck,
-        gameNumber = 5
-    )
-
-    with(game) {
-      performAction<Any?>(earl, "deal")
-      performAction<Any?>(andy, "pass")
-      performAction<Any?>(brad, "pass")
-      performAction<Any?>(carl, "pass")
-      performAction<Any?>(deryl, "pick")
-      performAction<Any?>(deryl, "bury", listOf(4, 6))
-      performAction<Any?>(andy, "playCard", 2)
-
-      try {
-        performAction<Any?>(brad, "playCard", 2)
-        fail<Any?>("Brad should not be able to play the King of hearts as trump was lead, and he has trump.")
-      } catch (e: Exception) {
-        assertEquals("Brad cannot play K♡ as Trump was lead, and Brad has Trump remaining.", e.message)
-      }
-    }
-
-  }
-
-  @Test
-  fun startSheepshead_deal_playWholeTrick_verifyWinner_verifyNextLead() {
+  fun startSheepshead_deal_playWholeGame_verifyWinner_verifyPoints_verifyScore() {
 
     val andy = Player("Andy")
     val brad = Player("Brad")
@@ -392,7 +134,9 @@ class SheepsheadGameTest {
       performAction<Any?>(deryl, "pick")
       performAction<Any?>(deryl, "bury", listOf(4, 6))
 
+      println()
       players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
 
       assertNull(state<Map<String,String>>("lastTrickDetails"))
 
@@ -402,24 +146,136 @@ class SheepsheadGameTest {
       performAction<Any?>(deryl, "playCard", 2)
       performAction<Any?>(earl,  "playCard", 2)
 
-      val lastTrick = state<List<Triple<Player, Card, Boolean>>>("lastTrickDetails") ?: throw RuntimeException("lastTrick should not be null")
-
-      val trickWinner = lastTrick
-          .first { it.third }
-          .let { it.first }
-
-      assertEquals(deryl, trickWinner, "Trick winner should be Deryl.")
-
+      println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
+      assertEquals(deryl, state<Player>("lastTrickWinner"), "Trick winner should be Deryl.")
       assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
 
-      assertTrue(game.availableActions(deryl).contains("playCard"), "It should be Deryl's turn now since he won the last trick.")
 
-      players
-          .filter { it != deryl }
-          .forEach {
-            println("Actions for $it: ${game.availableActions(it)}")
-            assertFalse(game.availableActions(it).contains("playCard"), "$it should not be able to play a card.")
-          }
+
+      println()
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
+
+      performAction<Any?>(deryl, "playCard", 1)
+      performAction<Any?>(earl,  "playCard", 4)
+      performAction<Any?>(andy,  "playCard", 4)
+      performAction<Any?>(brad,  "playCard", 0)
+      performAction<Any?>(carl,  "playCard", 4)
+
+      println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
+      assertEquals(deryl, state<Player>("lastTrickWinner"), "Trick winner should be Deryl.")
+      assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
+
+      println()
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
+
+      performAction<Any?>(deryl, "playCard", 3)
+      performAction<Any?>(earl,  "playCard", 2)
+      performAction<Any?>(andy,  "playCard", 2)
+      performAction<Any?>(brad,  "playCard", 0)
+      performAction<Any?>(carl,  "playCard", 0)
+
+      println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
+      assertEquals(earl, state<Player>("lastTrickWinner"), "Trick winner should be Earl.")
+      assertEquals(earl, game.currentPlayer(), "Current player should be Earl.")
+
+      println()
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
+
+      performAction<Any?>(earl,  "playCard", 2)
+      performAction<Any?>(andy,  "playCard", 0)
+      performAction<Any?>(brad,  "playCard", 0)
+      performAction<Any?>(carl,  "playCard", 0)
+      performAction<Any?>(deryl, "playCard", 0)
+
+      println()
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
+
+      println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
+      assertEquals(andy, state<Player>("lastTrickWinner"), "Trick winner should be Deryl.")
+      assertEquals(andy, game.currentPlayer(), "Current player should be Andy.")
+
+      performAction<Any?>(andy,  "playCard", 0)
+      performAction<Any?>(brad,  "playCard", 1)
+      performAction<Any?>(carl,  "playCard", 1)
+      performAction<Any?>(deryl, "playCard", 0)
+      performAction<Any?>(earl,  "playCard", 1)
+
+      println()
+      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      println()
+
+      println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
+      assertEquals(deryl, state<Player>("lastTrickWinner"), "Trick winner should be Deryl.")
+      assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
+
+      performAction<Any?>(deryl, "playCard", 0)
+      performAction<Any?>(earl,  "playCard", 0)
+      performAction<Any?>(andy,  "playCard", 0)
+      performAction<Any?>(brad,  "playCard", 0)
+      performAction<Any?>(carl,  "playCard", 0)
+
+      println()
+      println("Trick Winner: ${state<Player>("lastTrickWinner")}")
+      println()
+
+      assertTrue(game.isComplete())
+
+      val teams = game.state<List<Team>>("teams")
+      println(teams)
+
+      with(teams) {
+        assertEquals(size, 2)
+
+        first { it.first == "pickers" }.also {
+          assertTrue(it.second.contains(deryl), "Picking team should contain Deryl.")
+        }
+
+        first { it.first == "setters" }.also {
+          assertTrue(it.second.contains(andy), "Picking team should contain Andy.")
+          assertTrue(it.second.contains(brad), "Picking team should contain Brad.")
+          assertTrue(it.second.contains(carl), "Picking team should contain Carl.")
+          assertTrue(it.second.contains(earl), "Picking team should contain Earl.")
+        }
+
+      }
+
+      val points = game.state<TeamPoints>("points")
+
+      val pickers = points.first { it.first.first == "pickers" }
+      val setters = points.first { it.first.first == "setters" }
+
+      val pickerPoints = pickers.second ?: throw RuntimeException("No picker points")
+      val setterPoints = setters.second ?: throw RuntimeException("No setter points")
+
+      assertEquals(120, pickerPoints + setterPoints)
+      assertEquals(66, pickerPoints)
+      assertEquals(54, setterPoints)
+
+      val gameWinner: Team = game.state("gameWinner") ?: throw RuntimeException("gameWinner should not be null.")
+
+      assertEquals(Team("pickers", listOf(deryl)), gameWinner)
+
+      val score = game.state<PlayerScores>("score")
+
+      assertEquals(5, score.size, "There should be a score for each player.")
+
+      val andysPoints = score.first { it.first == andy }.second
+      val bradsPoints = score.first { it.first == brad }.second
+      val carlsPoints = score.first { it.first == carl }.second
+      val derylsPoints = score.first { it.first == deryl }.second
+      val earlsPoints = score.first { it.first == earl }.second
+
+      println(score)
+
+      assertEquals(4, derylsPoints)
+      assertEquals(-1, andysPoints)
+      assertEquals(-1, bradsPoints)
+      assertEquals(-1, carlsPoints)
+      assertEquals(-1, earlsPoints)
 
     }
 

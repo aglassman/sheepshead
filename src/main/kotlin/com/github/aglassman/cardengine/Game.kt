@@ -21,4 +21,5 @@ interface Game {
 
   fun <T> performAction(player: Player, action: String, parameters: Any? = null): T?
 
+  fun isComplete(): Boolean
 }

@@ -44,4 +44,8 @@ class Trick(
       if(maxTrump != null) maxTrump.first else maxLeadSuit?.first
     }
   }
+
+  fun trickPoints() = playedCards
+      .map { it.second.points() }
+      .sum()
 }
