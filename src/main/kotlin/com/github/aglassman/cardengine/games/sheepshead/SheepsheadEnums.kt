@@ -9,7 +9,6 @@ enum class Action(
     val describe: (game: Sheepshead) -> String = { "no description" }
 ) {
   deal({"Deal the cards for the game. Current dealer is ${it.dealer()}."}),
-  peek({"Peek at the cards if it is your turn to pass or pick on the blind."}),
   pick({"Pick the cards in the blind."}),
   pass({"Pass the option to pick the blind to the next player."}),
   bury({"Bury the same number of cards you picked up from the blind."}),
@@ -18,6 +17,7 @@ enum class Action(
   playCard({"Play a card if it is your turn."}),
   partnerStyle({""}),
   goAlone({"Declare you want no partner after you pick"}),
+  startPlay({"If you're playig jackOfDiamonds, and you don't want to go alone, you can startPlay."}),
   declareUndercard({
     "If the picker has all trump, but would still like a partner, they may pick a " +
       "trump to play face down to proxy as a card of the suit they call."}),

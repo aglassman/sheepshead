@@ -7,7 +7,15 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 
-class BurriedCards {
+class BurriedCards(
+    numberOfPlayers: Int
+) {
+
+  private val maxBurySize = when(numberOfPlayers) {
+    5 -> 2
+    4 -> 4
+    else -> throw GameException("Number of players $numberOfPlayers is unsupported for BurriedCards.")
+  }
 
   companion object {
     val LOGGER = LoggerFactory.getLogger(BurriedCards::class.java)
@@ -20,6 +28,10 @@ class BurriedCards {
   fun bury(player: Player, toBury: List<Int>) {
     if (cardsBurried()) {
       throw GameException("Cards have already been burried.")
+    }
+
+    if(toBury.size > maxBurySize) {
+      throw GameException("Cannot bury more than $maxBurySize cards.")
     }
 
     burriedCards = player.requestCards(toBury)

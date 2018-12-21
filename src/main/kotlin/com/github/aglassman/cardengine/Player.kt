@@ -15,6 +15,10 @@ class Player(
 
   fun requestCard(cardIndex: Int) = requestCards(listOf(cardIndex)).first()
 
+  fun peekCard(cardIndex: Int): Card {
+    return _hand.get(cardIndex)
+  }
+
   fun requestCards(requestedCards: List<Int>): List<Card> {
 
     requestedCards

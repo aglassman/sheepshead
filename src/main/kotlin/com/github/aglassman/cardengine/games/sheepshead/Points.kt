@@ -120,5 +120,28 @@ class Points(
     }
   }
 
-  private fun scoreLeaster(teamPoints: TeamPoints): PlayerScores = emptyList()
+  // TODO: Tie options
+  // 1) draw cards, trump must be drawn to win
+  // 2) split pot
+  // 3) one tie all tie
+  private fun scoreLeaster(teamPoints: TeamPoints): PlayerScores {
+    val leasterWinner = trickTracker.tricks()
+        .filter { it.trickTaken() }
+        .groupBy { it.trickWinner() }
+        .entries
+        .map { Pair(it.key, it.value.map { it.trickPoints() }.sum()) }
+        .minBy { it.second }
+
+    val scoreList = mutableListOf<Pair<Player, Int>>()
+
+    val winner: Player = leasterWinner?.first!!
+
+    scoreList.add(winner to 4)
+
+    teams.allPlayers
+        .filter { it != winner }
+        .forEach { scoreList.add( it to -1) }
+
+    return scoreList.toList()
+  }
 }

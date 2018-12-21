@@ -20,7 +20,7 @@ class SheepsheadDeck : Deck(
               .map {
                 Card(pair.first, it)
               }
-        }
+        }.shuffled()
 )
 
 val pointMap = mapOf(

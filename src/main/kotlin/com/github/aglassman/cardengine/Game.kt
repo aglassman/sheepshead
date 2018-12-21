@@ -19,7 +19,7 @@ interface Game {
 
   fun describeAction(action: String): String
 
-  fun <T> performAction(player: Player, action: String, parameters: Any? = null): T?
+  fun <T> performAction(player: Player, action: String, parameters: Any? = null): T
 
   fun isComplete(): Boolean
 }

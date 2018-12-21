@@ -3,11 +3,16 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
+import org.slf4j.LoggerFactory
 
 
 class Trick(
     private val numberOfPlayers: Int
 ) {
+
+  companion object {
+    val LOGGER = LoggerFactory.getLogger(Trick::class.java)
+  }
 
   internal val playedCards: MutableList<Pair<Player, Card>> = mutableListOf()
 
@@ -15,13 +20,23 @@ class Trick(
 
   fun trickTaken() = playedCards.size == numberOfPlayers
 
-  fun playCard(player: Player, card: Card) {
+  fun playCard(player: Player, cardIndex: Int) {
+    val proposedCard = player.peekCard(cardIndex)
+    LOGGER.info("$player played ${proposedCard.toUnicodeString()}")
     if(suitLead() != null
-        &&card.sheepsheadSuit() != suitLead()
+        && proposedCard.sheepsheadSuit() != suitLead()
         && player.hasSuitInHand(suitLead()!!))  {
-      throw GameException("$player cannot play ${card.toUnicodeString()} as ${suitLead()} was lead, and $player has ${suitLead()} remaining.")
+      throw GameException("$player cannot play ${proposedCard.toUnicodeString()} as ${suitLead()} was lead, and $player has ${suitLead()} remaining.")
     }
-    playedCards.add(player to card)
+
+    val cardToPlay = player.requestCard(cardIndex)
+
+    if(cardToPlay == proposedCard) {
+      playedCards.add(player to cardToPlay)
+    } else {
+      LOGGER.error("Card to play (${cardToPlay.toUnicodeString()})  did not match proposed card (${proposedCard.toUnicodeString()}).")
+    }
+
   }
 
   fun suitLead(): SheepsheadSuit? = playedCards.firstOrNull().let { it?.second?.sheepsheadSuit() }

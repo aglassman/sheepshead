@@ -38,8 +38,14 @@ class Sheepshead(
       })
 
   override fun currentPlayer(): Player {
-    return if(!trickTracker.playHasBegun()) {
+    return if(!cardsDealt) {
       dealer()
+    } else if(blind.option() != null) {
+      blind.option()!!
+    } else if(!burriedCards.cardsBurried()) {
+      teams?.picker!!
+    } else if(teams?.needToCallPartner() ?: false) {
+      teams?.picker!!
     } else {
       trickTracker.waitingOnPlayer()
     }
@@ -53,7 +59,7 @@ class Sheepshead(
       playerOrder
   )
 
-  var burriedCards = BurriedCards()
+  var burriedCards = BurriedCards( numberOfPlayers = players.size )
 
   var cardsDealt = false
 
@@ -69,9 +75,7 @@ class Sheepshead(
   }
 
   private fun playCard(player: Player, cardIndex: Int) {
-    val card = player.requestCard(cardIndex)
-    trickTracker.currentTrick().playCard(player, card)
-    LOGGER.info("$player played ${card.toUnicodeString()}")
+    trickTracker.currentTrick().playCard(player, cardIndex)
     trickTracker.currentTrick() // Will trigger creation of next trick if applicable.
   }
 
@@ -95,7 +99,8 @@ class Sheepshead(
 
       // blind
       !blind.blindRoundComplete() -> blindActions(player)
-      !trickTracker.playHasBegun() && player == teams?.picker -> listOf(Action.bury)
+      !burriedCards.cardsBurried() && player == teams?.picker -> listOf(Action.bury)
+      teams?.needToCallPartner() ?: false -> partnerActions()
       player.isPlayer(trickTracker.waitingOnPlayer()) -> listOf(playCard)
 
       // play
@@ -106,13 +111,20 @@ class Sheepshead(
 
   private fun blindActions(player: Player): List<Action> {
     return when {
-      blind.isAvailable() && blind.playerHasOption(player) && blind.hasLastOption(player) -> listOf(Action.peek, Action.pick, Action.callLeaster, Action.callDoubler)
-      blind.isAvailable() && blind.playerHasOption(player) -> listOf(Action.pick, Action.pass, Action.peek)
+      blind.isAvailable() && blind.playerHasOption(player) && blind.hasLastOption(player) -> listOf(Action.pick, Action.callLeaster, Action.callDoubler)
+      blind.isAvailable() && blind.playerHasOption(player) -> listOf(Action.pick, Action.pass)
       else -> emptyList()
     }
   }
 
-  override fun <T> performAction(player: Player, action: String, parameters: Any?): T? {
+  private fun partnerActions(): List<Action> {
+    return when(partnerStyle) {
+      PartnerStyle.calledAce -> listOf(callAce)
+      else -> listOf(goAlone, startPlay)
+    }
+  }
+
+  override fun <T> performAction(player: Player, action: String, parameters: Any?): T {
 
     val actionToPerform = try {
       Action.valueOf(action)
@@ -141,14 +153,20 @@ class Sheepshead(
         teams = Teams(partnerStyle, player, players)
         log(player, actionToPerform)
       }
-      peek -> {
-        LOGGER.info("$player peeked")
-        blind.peek(player) as T
-      }
       bury -> {
         burriedCards.bury(player, parameters as List<Int>)
+        if(partnerStyle == PartnerStyle.jackOfDiamonds) {
+          teams?.callPartner()
+        }
         LOGGER.info("$player burried")
-        trickTracker.beginPlay()
+        log(player, actionToPerform)
+      }
+      callAce -> {
+        teams?.callPartner(Suit.valueOf(parameters as String))
+        log(player, actionToPerform)
+      }
+      goAlone -> {
+        teams?.goAlone()
         log(player, actionToPerform)
       }
       playCard -> {
@@ -165,6 +183,14 @@ class Sheepshead(
   override fun availableStates(): List<String> {
     return mutableListOf<String>()
         .plus("blind")
+        .plus("lastTrickDetails")
+        .plus("lastTrickWinner")
+        .plus("teams")
+        .plus("points")
+        .plus("gameWinner")
+        .plus("score")
+        .plus("partnerStyle")
+        .plus("partnerKnown")
         .let {
           if(trickTracker.lastTrick() != null)
             it
@@ -183,6 +209,8 @@ class Sheepshead(
       "points" -> points().determinePoints() as T
       "gameWinner" -> points().determineWinner() as T
       "score" -> points().determineScore() as T
+      "partnerStyle" -> partnerStyle as T
+      "partnerKnown" -> teams?.partnerKnown() as T
       else -> throw GameStateException("No game state found for key: ($key)")
     }
   }

@@ -1,7 +1,6 @@
 package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.Card
-import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -22,8 +21,6 @@ class TrickTracker(
 
   private val tricks: MutableList<Trick> = mutableListOf()
 
-  fun playHasBegun() = tricks.size > 0
-
   fun playIsComplete() = tricks.filter { it.trickTaken() }.size == cardsPerHand // fix this
 
   fun tricks() = tricks.toList()
@@ -42,14 +39,6 @@ class TrickTracker(
 
   fun waitingOnPlayer() = currentTrick()?.let { trickPlayerOrder[it.currentSeatIndex()] }
 
-  fun beginPlay() {
-    if(playHasBegun()) {
-      throw GameException("Play has already begun.")
-    } else {
-      newTrick()
-      LOGGER.debug("Play has now begun. Initial play order: ${trickPlayerOrder}")
-    }
-  }
 
   private fun newTrick(): Trick {
     val lastTrick = lastTrick()
