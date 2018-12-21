@@ -48,11 +48,6 @@ class ConsolePlayer {
               ?: false -> input?.let { game.describeAction(it.substring(it.indexOf(" ") + 1, it.length)) }
           else -> "unknown command: ${input}"
         }.apply(::println)
-
-        if (game.isComplete()) {
-
-          exit = true
-        }
       } catch (e: Exception) {
         println(e)
       }
