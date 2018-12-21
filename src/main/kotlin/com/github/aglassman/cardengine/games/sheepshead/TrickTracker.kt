@@ -1,6 +1,7 @@
 package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.Card
+import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -9,12 +10,16 @@ import java.util.*
 typealias TrickDetails = List<Triple<Player, Card, Boolean>>
 
 class TrickTracker(
-    playerOrder: List<Player>,
-    private val cardsPerHand: Int
+    playerOrder: List<Player>
 ) {
 
   companion object {
     val LOGGER = LoggerFactory.getLogger(TrickTracker::class.java)
+  }
+
+  private val cardsPerHand: Int = when(playerOrder.size){
+    5 -> 6
+    else -> throw GameException("Unsupported number of players ${playerOrder.size}")
   }
 
   var trickPlayerOrder = playerOrder.toMutableList()

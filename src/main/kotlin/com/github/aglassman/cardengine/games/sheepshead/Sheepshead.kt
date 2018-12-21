@@ -30,12 +30,7 @@ class Sheepshead(
 
   private val playerOrder = players.toMutableList().apply { rotate(this, -1 * (gameNumber)) }
 
-  private val trickTracker = TrickTracker(
-      playerOrder = playerOrder,
-      cardsPerHand = when(players.size){
-        5 -> 6
-        else -> 5
-      })
+  private val trickTracker = TrickTracker(playerOrder = playerOrder)
 
   override fun currentPlayer(): Player {
     return if(!cardsDealt) {
