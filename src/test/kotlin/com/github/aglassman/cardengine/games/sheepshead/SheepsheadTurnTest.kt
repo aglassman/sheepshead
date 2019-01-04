@@ -1,11 +1,10 @@
-
+package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
-import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -125,7 +124,6 @@ class SheepsheadTurnTest {
 
     println(game.describeAction("deal"))
     println(game.describeAction("pass"))
-    println(game.describeAction("peek"))
 
     with(game) {
 
@@ -202,21 +200,18 @@ class SheepsheadTurnTest {
         Card(DIAMOND, NINE))
 
     with(deryl) {
-      assertEquals(6, hand().size)
 
-      assertEquals(derylsExpectedHand, hand())
+      assertEquals(6, game.state<List<Card>>("hand", this).size)
 
-      val blindPeek = game.performAction<List<Card>>(this, "peek") ?: fail("peek failed")
-
-      assertTrue(blindPeek.containsAll(expectedBlind))
+      assertEquals(derylsExpectedHand, game.state<List<Card>>("hand", this))
 
       game.performAction<Any?>(this, "pick")
 
-      assertEquals(8, hand().size)
-      assertEquals(derylsExpectedHandAfterPicking, this.hand())
+      assertEquals(8, game.state<List<Card>>("hand", this).size)
+      assertEquals(derylsExpectedHandAfterPicking, game.state<List<Card>>("hand", this))
 
-      assertEquals(Card(DIAMOND, ACE), hand()[4])
-      assertEquals(Card(HEART, ACE), hand()[6])
+      assertEquals(Card(DIAMOND, ACE), game.state<List<Card>>("hand", this)[4])
+      assertEquals(Card(HEART, ACE), game.state<List<Card>>("hand", this)[6])
 
       assertTrue(game.availableActions(this).contains("bury"), "Deryl should be able to bury.")
 
@@ -231,7 +226,7 @@ class SheepsheadTurnTest {
       game.performAction<Any?>(this, "bury", listOf(4, 6))
 
       assertTrue(
-          hand().containsAll(
+          game.state<List<Card>>("hand", this).containsAll(
               listOf(
                   Card(CLUB, EIGHT),
                   Card(CLUB, QUEEN),
@@ -302,7 +297,7 @@ class SheepsheadTurnTest {
             Card(HEART, NINE),
             Card(HEART, JACK),
             Card(DIAMOND, SEVEN)),
-        andy.hand())
+        game.state("hand", andy))
 
     game.performAction<Any?>(andy, "playCard", 2)
 
@@ -314,7 +309,7 @@ class SheepsheadTurnTest {
             Card(HEART, NINE),
             Card(HEART, JACK),
             Card(DIAMOND, SEVEN)),
-        andy.hand())
+        game.state("hand", andy))
 
     // Verify it is now Brad's turn
 
@@ -392,7 +387,7 @@ class SheepsheadTurnTest {
       performAction<Any?>(deryl, "pick")
       performAction<Any?>(deryl, "bury", listOf(4, 6))
 
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
 
       assertNull(state<Map<String,String>>("lastTrickDetails"))
 

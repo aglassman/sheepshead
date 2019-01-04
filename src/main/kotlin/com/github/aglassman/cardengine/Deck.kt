@@ -59,7 +59,7 @@ class Card(
 
 }
 
-class StandardDeck : Deck(
+open class StandardDeck : Deck(
     deck = Suit.values()
         .map { it to Face.values() }
         .flatMap { pair ->
@@ -68,13 +68,14 @@ class StandardDeck : Deck(
                 Card(pair.first, it)
               }
         }
+        .shuffled()
 )
 
 open class Deck(
     deck: List<Card>
 ) {
 
-  private var _deck = deck.toList()
+  protected var _deck: List<Card> = deck.toList()
 
   fun deal(): Card {
     val dealtCard = _deck.first()
@@ -95,5 +96,12 @@ open class Deck(
 
   fun cardsLeft() = _deck.size
 
+  fun cardsGone() = _deck.size == 0
+
 }
+
+fun cardString(cards: List<Card>) =
+    cards
+        .mapIndexed { index, card -> "$index:[${card.toUnicodeString()}]" }
+        .joinToString { "$it " }
 

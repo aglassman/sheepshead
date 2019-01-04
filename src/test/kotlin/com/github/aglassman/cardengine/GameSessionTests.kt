@@ -1,5 +1,4 @@
-
-import com.github.aglassman.cardengine.*
+package com.github.aglassman.cardengine
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -108,19 +107,19 @@ class GameSessionTests {
 
     assertEquals(0, game.state<List<Card>>("blind").size)
 
-    assertEquals(0, andy.hand().size)
-    assertEquals(0, brad.hand().size)
-    assertEquals(0, carl.hand().size)
-    assertEquals(0, deryl.hand().size)
-    assertEquals(0, earl.hand().size)
+    assertEquals(0, game.state<List<Card>>("hand", andy).size)
+    assertEquals(0, game.state<List<Card>>("hand", brad).size)
+    assertEquals(0, game.state<List<Card>>("hand", carl).size)
+    assertEquals(0, game.state<List<Card>>("hand", deryl).size)
+    assertEquals(0, game.state<List<Card>>("hand", earl).size)
 
     game.deal()
 
-    assertEquals(6, andy.hand().size)
-    assertEquals(6, brad.hand().size)
-    assertEquals(6, carl.hand().size)
-    assertEquals(6, deryl.hand().size)
-    assertEquals(6, earl.hand().size)
+    assertEquals(6, game.state<List<Card>>("hand", andy).size)
+    assertEquals(6, game.state<List<Card>>("hand", brad).size)
+    assertEquals(6, game.state<List<Card>>("hand", carl).size)
+    assertEquals(6, game.state<List<Card>>("hand", deryl).size)
+    assertEquals(6, game.state<List<Card>>("hand", earl).size)
 
     val blind: List<Card> = game.state("blind")
 

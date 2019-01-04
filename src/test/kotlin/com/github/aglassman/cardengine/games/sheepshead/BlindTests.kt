@@ -1,9 +1,8 @@
-
+package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Face
-import com.github.aglassman.cardengine.Player
+import com.github.aglassman.cardengine.StandardPlayer
 import com.github.aglassman.cardengine.Suit
-import com.github.aglassman.cardengine.games.sheepshead.Blind
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -12,11 +11,11 @@ class BlindTests {
   @Test
   fun setupBlind() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -37,11 +36,11 @@ class BlindTests {
   @Test
   public fun setupBlind_testSettingTwice() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -74,11 +73,11 @@ class BlindTests {
   @Test
   fun setupBlind_testFirstOption() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -111,11 +110,11 @@ class BlindTests {
   @Test
   fun setupBlind_testPassing() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -161,11 +160,11 @@ class BlindTests {
   @Test
   fun setupBlind_testPickingOutOfOrder_expectException() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -213,11 +212,11 @@ class BlindTests {
   @Test
   fun setupBlind_testBlindStateAfterPick() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 
@@ -272,11 +271,11 @@ class BlindTests {
   @Test
   fun setupBlind_testGoToLastOption() {
 
-    val brad = Player("Brad") // First Option
-    val carl = Player("Carl")
-    val deryl = Player("Deryl")
-    val earl = Player("Earl")
-    val andy = Player("Andy") // Dealer
+    val brad = StandardPlayer("Brad") // First Option
+    val carl = StandardPlayer("Carl")
+    val deryl = StandardPlayer("Deryl")
+    val earl = StandardPlayer("Earl")
+    val andy = StandardPlayer("Andy") // Dealer
 
     val players = listOf(brad, carl, deryl, earl, andy)
 

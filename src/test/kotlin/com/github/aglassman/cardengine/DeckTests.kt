@@ -1,5 +1,6 @@
+package com.github.aglassman.cardengine
+
 import com.github.aglassman.cardengine.*
-import com.github.aglassman.cardengine.games.sheepshead.SheepsheadDeck
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
@@ -79,13 +80,6 @@ class DeckTests {
   fun testStandardDeck_creation() {
     with(StandardDeck()) {
       assertEquals(52, cardsLeft())
-    }
-  }
-
-  @Test
-  fun testSheepsheadDeck_creation() {
-    with(SheepsheadDeck()) {
-      assertEquals(32, cardsLeft())
     }
   }
 

@@ -3,6 +3,7 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
+import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -10,7 +11,7 @@ import java.util.*
 typealias TrickDetails = List<Triple<Player, Card, Boolean>>
 
 class TrickTracker(
-    playerOrder: List<Player>
+    playerOrder: List<StandardPlayer>
 ) {
 
   companion object {

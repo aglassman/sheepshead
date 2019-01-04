@@ -1,18 +1,18 @@
 package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.Deck
-import com.github.aglassman.cardengine.Player
+import com.github.aglassman.cardengine.StandardPlayer
 
 
 class FiveHandDeal(
     private val deck: Deck,
-    private val playerOrder: List<Player>,
+    private val players: List<StandardPlayer>,
     private val blind: Blind
 ) {
   fun deal() {
     while (deck.cardsLeft() > 0) {
 
-      playerOrder.forEach {
+      players.forEach {
         it.recieveCards(deck.deal(3))
       }
 

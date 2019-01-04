@@ -37,7 +37,7 @@ class Points(
       else -> {
         val pickerTeam: Team = teams
             .teamList()
-            .first { it.second.contains(teams.picker) }
+            .first { it.second.contains(teams.picker as Player) }
 
         trickPoints.computeIfPresent(pickerTeam, { team, currentPoints -> currentPoints +  burriedCards.points()} )
 
@@ -87,7 +87,7 @@ class Points(
       val winners = teamPoints.get(0).first.second
       val losers = teamPoints.get(1).first.second
 
-      val pickerWon = winners.contains(teams.picker)
+      val pickerWon = winners.contains(teams.picker as Player)
 
       val scoreList = mutableListOf<PlayerScore>()
 

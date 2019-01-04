@@ -1,13 +1,9 @@
-
+package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
-import com.github.aglassman.cardengine.games.sheepshead.PlayerScores
-import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
-import com.github.aglassman.cardengine.games.sheepshead.Team
-import com.github.aglassman.cardengine.games.sheepshead.TeamPoints
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -135,7 +131,7 @@ class SheepsheadGameTest {
       performAction<Any?>(deryl, "bury", listOf(4, 6))
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       assertNull(state<Map<String,String>>("lastTrickDetails"))
@@ -153,7 +149,7 @@ class SheepsheadGameTest {
 
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       performAction<Any?>(deryl, "playCard", 1)
@@ -167,7 +163,7 @@ class SheepsheadGameTest {
       assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       performAction<Any?>(deryl, "playCard", 3)
@@ -181,7 +177,7 @@ class SheepsheadGameTest {
       assertEquals(earl, game.currentPlayer(), "Current player should be Earl.")
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       performAction<Any?>(earl,  "playCard", 2)
@@ -191,7 +187,7 @@ class SheepsheadGameTest {
       performAction<Any?>(deryl, "playCard", 0)
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")
@@ -205,7 +201,7 @@ class SheepsheadGameTest {
       performAction<Any?>(earl,  "playCard", 1)
 
       println()
-      players.forEach { player -> println("$player's hand: ${player.hand().joinToString { "${it.toUnicodeString()}" }}") }
+      players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
       println("\nTrick Winner: ${state<Player>("lastTrickWinner")}")

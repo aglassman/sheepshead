@@ -53,7 +53,7 @@ internal fun Card.sheepsheadSuit(): SheepsheadSuit {
   }
 }
 
-internal fun Card.isTrump() = this.sheepsheadSuit() == SheepsheadSuit.Trump
+fun Card.isTrump() = this.sheepsheadSuit() == SheepsheadSuit.Trump
 
 val powerList = listOf(
     Face.SEVEN,
@@ -65,9 +65,9 @@ val powerList = listOf(
     Face.JACK,
     Face.QUEEN)
 
-internal fun Card.power() = powerList.indexOf(this.face)
+fun Card.power() = powerList.indexOf(this.face)
 
-internal fun Card.points() = pointMap.get(this.face) ?: 0
+fun Card.points() = pointMap.get(this.face) ?: 0
 
 
 class CardComparitor: Comparator<Card> {

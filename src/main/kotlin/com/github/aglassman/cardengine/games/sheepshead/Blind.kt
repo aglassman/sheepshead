@@ -3,11 +3,12 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
+import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
 
 
 class Blind(
-    playerOrder: List<Player>
+    playerOrder: List<StandardPlayer>
 ) {
 
   companion object {
@@ -17,7 +18,7 @@ class Blind(
   enum class Option { owait, opass, opick, oskip }
 
   data class PickOption(
-      val player: Player,
+      val player: StandardPlayer,
       var pickOption: Option = Option.owait
   )
 
@@ -29,11 +30,11 @@ class Blind(
 
   fun isAvailable() = (blind.size > 0) && (pickOption.filter { it.pickOption == Option.opick }.isEmpty())
 
-  fun option(): Player? = pickOption.firstOrNull { isAvailable() && it.pickOption == Option.owait }?.player
+  fun option(): StandardPlayer? = pickOption.firstOrNull { isAvailable() && it.pickOption == Option.owait }?.player
 
-  fun playerHasOption(player: Player) = isAvailable() && player == pickOption.first { it.pickOption == Option.owait }.player
+  fun playerHasOption(player: StandardPlayer) = isAvailable() && player == pickOption.first { it.pickOption == Option.owait }.player
 
-  fun hasLastOption(player: Player) = player == pickOption.last().player
+  fun hasLastOption(player: StandardPlayer) = player == pickOption.last().player
 
   fun setBlind(blind: List<Card>) {
     if (this.blind.size == 0) {
@@ -49,7 +50,7 @@ class Blind(
 
   fun peek() = blind.toList()
 
-  fun peek(player: Player): List<Card> {
+  fun peek(player: StandardPlayer): List<Card> {
     if(option() == null) {
       throw GameException("Cannot peek as blind has already been picked.")
     }
@@ -61,7 +62,7 @@ class Blind(
     }
   }
 
-  fun pass(player: Player) {
+  fun pass(player: StandardPlayer) {
     if (option() == null) {
       throw GameException("Cannot pass as blind has already been picked.")
     }
@@ -73,7 +74,7 @@ class Blind(
     }
   }
 
-  fun pick(player: Player) {
+  fun pick(player: StandardPlayer) {
     if (option() == null) {
       throw GameException("Cannot pick as blind has already been picked.")
     }

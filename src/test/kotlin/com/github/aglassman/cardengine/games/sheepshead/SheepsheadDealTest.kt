@@ -1,5 +1,6 @@
+package com.github.aglassman.cardengine.games.sheepshead
+
 import com.github.aglassman.cardengine.*
-import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -83,7 +84,7 @@ class SheepsheadDealTest {
 
     game.deal()
 
-    with(andy.hand()) {
+    with(game.state<List<Card>>("hand", andy)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -95,7 +96,7 @@ class SheepsheadDealTest {
               Card(Suit.DIAMOND, Face.SEVEN)))
     }
 
-    with(brad.hand()) {
+    with(game.state<List<Card>>("hand", brad)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -108,7 +109,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(carl.hand()) {
+    with(game.state<List<Card>>("hand", carl)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -121,7 +122,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(deryl.hand()) {
+    with(game.state<List<Card>>("hand", deryl)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -134,7 +135,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(earl.hand()) {
+    with(game.state<List<Card>>("hand", earl)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -177,7 +178,7 @@ class SheepsheadDealTest {
 
     game.deal()
 
-    with(andy.hand()) {
+    with(game.state<List<Card>>("hand", andy)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -190,7 +191,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(brad.hand()) {
+    with(game.state<List<Card>>("hand", brad)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -203,7 +204,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(carl.hand()) {
+    with(game.state<List<Card>>("hand", carl)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -216,7 +217,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(deryl.hand()) {
+    with(game.state<List<Card>>("hand", deryl)) {
       assertEquals(6, size)
       containsAll(
           listOf(
@@ -229,7 +230,7 @@ class SheepsheadDealTest {
           ))
     }
 
-    with(earl.hand()) {
+    with(game.state<List<Card>>("hand", earl)) {
       assertEquals(6, size)
       containsAll(
           listOf(

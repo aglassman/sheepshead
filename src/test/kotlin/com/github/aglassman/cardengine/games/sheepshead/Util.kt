@@ -1,6 +1,8 @@
+package com.github.aglassman.cardengine.games.sheepshead
+
 import com.github.aglassman.cardengine.Deck
 
-fun generateTestSheepsheadDeckInKotlin(deck: Deck) {
+fun generateTestDeckInKotlin(deck: Deck) {
 
   val cards = deck.deal(deck.cardsLeft())
 

@@ -7,7 +7,7 @@ interface Game {
   fun availableStates(): List<String>
 
   @Throws(GameStateException::class)
-  fun <T> state(key: String): T
+  fun <T> state(key: String, forPlayer: Player? = null): T
 
   fun dealer(): Player
 

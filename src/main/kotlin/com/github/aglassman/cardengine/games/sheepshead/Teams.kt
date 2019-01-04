@@ -9,8 +9,8 @@ typealias TeamList = List<Team>
 
 class Teams(
     defaultStyle: PartnerStyle,
-    val picker: Player? = null,
-    val allPlayers: List<Player>
+    val picker: StandardPlayer? = null,
+    val allPlayers: List<StandardPlayer>
 ) {
 
   private var partnerStyle = defaultStyle

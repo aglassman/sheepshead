@@ -1,12 +1,36 @@
 package com.github.aglassman.cardengine
 
 
-class Player(
+open class Player(
     val name: String
 ) {
+
+
+
+  override fun equals(other: Any?) = when {
+    this === other -> true
+    other is Player -> name == other.name
+    else -> false
+  }
+
+  override fun hashCode(): Int {
+    return name.hashCode()
+  }
+
+  override fun toString(): String {
+    return name
+  }
+
+}
+
+class StandardPlayer(name: String) : Player(name = name) {
   private var _hand: MutableList<Card> = mutableListOf()
 
   fun hand() = _hand.toList()
+
+  fun recieveCard(card: Card) {
+    _hand.addAll(listOf(card))
+  }
 
   fun recieveCards(cards: List<Card>) {
     // println("$name recieved ${cards.joinToString { "${it.toUnicodeString()}" }}")
@@ -24,7 +48,7 @@ class Player(
     requestedCards
         .distinct()
         .forEach {
-          if(it > _hand.size) throw GameException("Requested card at index $it, but hand only has ${_hand.size} cards.")
+          if (it > _hand.size) throw GameException("Requested card at index $it, but hand only has ${_hand.size} cards.")
         }
 
     val foundCards = requestedCards
@@ -40,9 +64,8 @@ class Player(
   }
 
   fun isPlayer(player: Player?) = this.name == player?.name
+
   override fun toString(): String {
     return name
   }
-
-
 }

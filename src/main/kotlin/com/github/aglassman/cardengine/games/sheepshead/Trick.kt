@@ -3,6 +3,7 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
+import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
 
 
@@ -20,7 +21,7 @@ class Trick(
 
   fun trickTaken() = playedCards.size == numberOfPlayers
 
-  fun playCard(player: Player, cardIndex: Int) {
+  fun playCard(player: StandardPlayer, cardIndex: Int) {
     val proposedCard = player.peekCard(cardIndex)
     LOGGER.info("$player played ${proposedCard.toUnicodeString()}")
     if(suitLead() != null
