@@ -49,8 +49,11 @@ class ConsolePlayer {
           game.availableActions(currentPlayer).contains(command) -> {
             when(game.actionParameterType(command)) {
               ParamType.Integer -> game.performAction(currentPlayer, command, params[0].toInt())
+              ParamType.Str -> game.performAction(currentPlayer, command, input.substringAfter("$command "))
               ParamType.IntList -> game.performAction(currentPlayer, command, params.map(String::toInt))
-              else -> game.performAction(currentPlayer, command)
+              ParamType.StrList -> game.performAction(currentPlayer, command, params)
+              null -> game.performAction(currentPlayer, command)
+              else -> throw Exception("Unsuported actionParameterType: ${game.actionParameterType(command)}")
             }
           }
           game.availableStates().contains(command) -> game.state(command, if(noParams) { currentPlayer } else { Player(params[0]) })
