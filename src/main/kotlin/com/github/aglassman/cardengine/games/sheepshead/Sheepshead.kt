@@ -95,6 +95,14 @@ class Sheepshead(
     }
   }
 
+  override fun actionParameterType(action: String): ParamType? {
+    return try {
+      Action.valueOf(action).let { it.paramType }
+    } catch (e: Exception) {
+      throw GameException("($action) is not a valid action.")
+    }
+  }
+
   private fun listAvailableActions(player: StandardPlayer): List<Action> {
 
     val isDealer = player.isPlayer(dealer())
@@ -212,7 +220,7 @@ class Sheepshead(
   @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
   override fun <T> state(key: String, forPlayer: Player?): T {
     return when (key) {
-      "hand" -> toStandardPlayer(forPlayer!!).hand()
+      "hand" -> toStandardPlayer(forPlayer ?: throw GameException("Must specify player for state (hand).")).hand()
       "blind" -> blind.peek()
       "lastTrickDetails" -> trickTracker.lastTrickDetails()
       "lastTrickWinner" -> trickTracker.lastTrick()?.trickWinner()

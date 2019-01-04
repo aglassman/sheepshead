@@ -43,13 +43,17 @@ class ConsolePlayer {
         val commands = input.split(" ")
         val command = commands[0]
         val params = commands.subList(1,commands.size)
+        val noParams = params.size == 0
 
         when {
-          command == "hand" -> hand
-          command == "playCard" -> game.performAction(currentPlayer, "playCard", params[0].toInt())
-          command == "bury" -> game.performAction(currentPlayer, "bury", params.map(String::toInt))
-          game.availableActions(currentPlayer).contains(command) -> game.performAction(currentPlayer, command)
-          game.availableStates().contains(command) -> game.state(command)
+          game.availableActions(currentPlayer).contains(command) -> {
+            when(game.actionParameterType(command)) {
+              ParamType.Integer -> game.performAction(currentPlayer, command, params[0].toInt())
+              ParamType.IntList -> game.performAction(currentPlayer, command, params.map(String::toInt))
+              else -> game.performAction(currentPlayer, command)
+            }
+          }
+          game.availableStates().contains(command) -> game.state(command, if(noParams) { currentPlayer } else { Player(params[0]) })
           command == "availableStates" -> game.availableStates()
           command == "currentPlayer" -> currentPlayer
           command == "playerActions" -> game.availableActions(currentPlayer)

@@ -181,6 +181,9 @@ class CrazyEights(
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
+  override fun actionParameterType(action: String): ParamType? {
+    return null
+  }
 
   @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
   override fun <T> performAction(player: Player, action: String, parameters: Any?): T {
