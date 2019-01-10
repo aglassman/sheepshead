@@ -77,20 +77,20 @@ class TrickTracker(
    * second: the card played
    * third: true if the card won the trick
    */
-  fun lastTrickDetails(): TrickDetails? {
+  fun lastTrickDetails(): List<TrickTurn>? {
     val lastCompleteTrick = tricks
         .filter { it.trickTaken() }
         .lastOrNull()
 
     return lastCompleteTrick?.let {
       val trickWinner = it.trickWinner()!!
-      it.playedCards.map { Triple(it.first, it.second, it.first == trickWinner) }
+      it.playedCards.map { TrickTurn(it.first, it.second, it.first == trickWinner) }
     }
   }
 
   internal fun calculateCurrentPoints(teams: Teams): Map<Team, Int> =
-      teams.teamList()
-          .map { it to tallyTeamPoints(it.second, tricks) }
+      teams.teams()
+          .map { it to tallyTeamPoints(it.members, tricks) }
           .toMap()
 
   private fun tallyTeamPoints(teamPlayers: List<Player>, tricks: List<Trick>): Int =

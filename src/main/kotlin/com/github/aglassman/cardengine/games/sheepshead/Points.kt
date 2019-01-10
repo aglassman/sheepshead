@@ -35,9 +35,7 @@ class Points(
         // need to figure out what to do with blind cards here
       }
       else -> {
-        val pickerTeam: Team = teams
-            .teamList()
-            .first { it.second.contains(teams.picker as Player) }
+        val pickerTeam: Team = teams.pickers()!!
 
         trickPoints.computeIfPresent(pickerTeam, { team, currentPoints -> currentPoints +  burriedCards.points()} )
 
@@ -80,12 +78,12 @@ class Points(
     }
   }
 
-  private fun scoreNormal(teamPoints: TeamPoints): PlayerScores = when(teams.teamList().size) {
+  private fun scoreNormal(teamPoints: TeamPoints): PlayerScores = when(teams.teams().size) {
     2 -> {
       // two teams, assumes there was a picker
 
-      val winners = teamPoints.get(0).first.second
-      val losers = teamPoints.get(1).first.second
+      val winners = teamPoints.get(0).first.members
+      val losers = teamPoints.get(1).first.members
 
       val pickerWon = winners.contains(teams.picker as Player)
 

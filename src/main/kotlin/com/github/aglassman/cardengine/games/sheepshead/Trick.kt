@@ -6,6 +6,11 @@ import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
 
+data class TrickTurn(
+    val player: Player,
+    val card: Card,
+    val winner: Boolean
+)
 
 class Trick(
     private val numberOfPlayers: Int

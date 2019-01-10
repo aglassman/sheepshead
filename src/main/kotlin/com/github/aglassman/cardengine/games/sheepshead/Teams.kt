@@ -3,9 +3,10 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.*
 import org.slf4j.LoggerFactory
 
-typealias Team = Pair<String, List<Player>>
-
-typealias TeamList = List<Team>
+data class Team(
+    val name: String,
+    val members: List<Player>
+)
 
 class Teams(
     defaultStyle: PartnerStyle,
@@ -64,18 +65,18 @@ class Teams(
     }
   }
 
-  fun teamList(): List<Team> {
+  fun teams(): List<Team> {
     val teamList = mutableListOf<Team>()
 
-    if (picker != null && _partner != null) {
-      teamList.add("pickers" to listOf(picker, _partner!!).distinct())
-      teamList.add("setters" to allPlayers.filter { it != picker || it != _partner })
+    if (picker != null && partnerKnown()) {
+      teamList.add(Team("pickers", listOf(picker, _partner!!).distinct()))
+      teamList.add(Team("setters", allPlayers.filter { it != picker || it != _partner }))
     } else if (picker != null) {
-      teamList.add("pickers" to listOf(picker))
-      teamList.add("setters" to allPlayers.filter { it != picker })
+      teamList.add(Team("pickers", listOf(picker)))
+      teamList.add(Team("setters", allPlayers.filter { it != picker }))
     } else {
       allPlayers.forEach {
-        teamList.add(it.name to listOf(it))
+        teamList.add(Team(it.name, listOf(it)))
       }
     }
 
@@ -83,12 +84,12 @@ class Teams(
 
   }
 
-  fun pickers(): List<Player> {
-    return teamList().firstOrNull { it.first == "pickers" }?.second ?: emptyList()
+  fun pickers(): Team? {
+    return teams().firstOrNull { it.name == "pickers" }
   }
 
-  fun setters(): List<Player> {
-    return teamList().firstOrNull { it.first == "setters" }?.second ?: emptyList()
+  fun setters(): Team? {
+    return teams().firstOrNull { it.name == "setters" }
   }
 
 }

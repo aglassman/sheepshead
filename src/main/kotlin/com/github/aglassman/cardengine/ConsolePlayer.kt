@@ -7,10 +7,10 @@ class ConsolePlayer {
   fun begin() {
 
     println("Welcome to Console Cards!")
-    val gameType =  println("Pick a game type ${GameSession.gameMap.keys}:")
+    val gameType = println("Pick a game type ${GameSession.gameMap.keys}:")
         .let {
           var gameTypeInput = readLine() ?: "unspecified"
-          while(!GameSession.gameMap.containsKey(gameTypeInput)) {
+          while (!GameSession.gameMap.containsKey(gameTypeInput)) {
             gameTypeInput = println("invalid option").let { readLine() ?: "unspecified" }
           }
           gameTypeInput
@@ -18,7 +18,7 @@ class ConsolePlayer {
 
     val players = println("Number of players?")
         .let { readLine()!!.toInt() }
-        .let { List(it, { index ->  println("Player ${index + 1}:").let { Player(readLine()!!) } }) }
+        .let { List(it, { index -> println("Player ${index + 1}:").let { Player(readLine()!!) } }) }
 
     val gameSession = GameSession(
         gameType = gameType,
@@ -38,41 +38,9 @@ class ConsolePlayer {
 
         println("${currentPlayer}'s turn. cards: ${cardString(hand)} actions: ${game.availableActions(currentPlayer)}")
 
-        val input: String = readLine()!!
+        val input = Input(readLine()!!)
 
-        val commands = input.split(" ")
-        val command = commands[0]
-        val params = commands.subList(1,commands.size)
-        val noParams = params.size == 0
-
-        when {
-          game.availableActions(currentPlayer).contains(command) -> {
-            when(game.actionParameterType(command)) {
-              ParamType.Integer -> game.performAction(currentPlayer, command, params[0].toInt())
-              ParamType.Str -> game.performAction(currentPlayer, command, input.substringAfter("$command "))
-              ParamType.IntList -> game.performAction(currentPlayer, command, params.map(String::toInt))
-              ParamType.StrList -> game.performAction(currentPlayer, command, params)
-              null -> game.performAction(currentPlayer, command)
-              else -> throw Exception("Unsuported actionParameterType: ${game.actionParameterType(command)}")
-            }
-          }
-          game.availableStates().contains(command) -> game.state(command, if(noParams) { currentPlayer } else { Player(params[0]) })
-          command == "availableStates" -> game.availableStates()
-          command == "currentPlayer" -> currentPlayer
-          command == "playerActions" -> game.availableActions(currentPlayer)
-          command == "help" -> listOf(
-              "availableStates",
-              "currentPlayer",
-              "playerActions",
-              "exit"
-          )
-          command == "exit" -> {
-            exit = true
-            "exiting"
-          }
-          command == "describe" -> game.describeAction(params[0])
-          else -> "unknown command: ${input}"
-        }.apply(::println)
+        processCommand(game, currentPlayer, input).apply(::println)
       } catch (e: Exception) {
         println(e)
       }

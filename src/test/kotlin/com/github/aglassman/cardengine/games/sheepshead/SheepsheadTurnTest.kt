@@ -389,19 +389,17 @@ class SheepsheadTurnTest {
 
       players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
 
-      assertNull(state<Map<String,String>>("lastTrickDetails"))
-
       performAction<Any?>(andy,  "playCard", 3)
       performAction<Any?>(brad,  "playCard", 4)
       performAction<Any?>(carl,  "playCard", 3)
       performAction<Any?>(deryl, "playCard", 2)
       performAction<Any?>(earl,  "playCard", 2)
 
-      val lastTrick = state<List<Triple<Player, Card, Boolean>>>("lastTrickDetails") ?: throw RuntimeException("lastTrick should not be null")
+      val lastTrick = state<List<TrickTurn>>("lastTrickDetails") ?: throw RuntimeException("lastTrick should not be null")
 
       val trickWinner = lastTrick
-          .first { it.third }
-          .let { it.first }
+          .first { it.winner }
+          .let { it.player }
 
       assertEquals(deryl, trickWinner, "Trick winner should be Deryl.")
 

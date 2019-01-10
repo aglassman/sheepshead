@@ -41,7 +41,7 @@ class Sheepshead(
   private val trickTracker = TrickTracker(playerOrder = playerOrder)
 
   private fun toStandardPlayer(player: Player) =
-      playerOrder.first { it.name == player.name }
+      playerOrder.firstOrNull { it.name == player.name } ?: throw GameException("$player is not a member of the current game.")
 
   override fun currentPlayer(): Player {
     return if(!cardsDealt) {
@@ -200,31 +200,50 @@ class Sheepshead(
     return mutableListOf<String>()
         .plus("hand")
         .plus("blind")
-        .plus("lastTrickDetails")
-        .plus("lastTrickWinner")
-        .plus("teams")
-        .plus("points")
-        .plus("gameWinner")
-        .plus("score")
         .plus("partnerStyle")
         .plus("partnerKnown")
+        .plus("currentTrick")
         .let {
           if(trickTracker.lastTrick() != null)
             it
                 .plus("lastTrickDetails")
                 .plus("lastTrickWinner")
           else
-            it }
+            it
+        }
+        .let {
+          if(teams != null) {
+            it.plus("teams")
+          } else {
+            it
+          }
+        }
+        .let {
+          if(trickTracker.playIsComplete()) {
+            it
+                .plus("points")
+                .plus("gameWinner")
+                .plus("score")
+          } else {
+            it
+          }
+        }
   }
 
   @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
   override fun <T> state(key: String, forPlayer: Player?): T {
+
+    if(!availableStates().contains(key)) {
+      throw GameException("state ($key) is unavailable")
+    }
+
     return when (key) {
       "hand" -> toStandardPlayer(forPlayer ?: throw GameException("Must specify player for state (hand).")).hand()
       "blind" -> blind.peek()
+      "currentTrick" -> trickTracker.currentTrick()
       "lastTrickDetails" -> trickTracker.lastTrickDetails()
       "lastTrickWinner" -> trickTracker.lastTrick()?.trickWinner()
-      "teams" -> teams?.teamList()
+      "teams" -> teams?.teams()
       "points" -> points().determinePoints()
       "gameWinner" -> points().determineWinner()
       "score" -> points().determineScore()

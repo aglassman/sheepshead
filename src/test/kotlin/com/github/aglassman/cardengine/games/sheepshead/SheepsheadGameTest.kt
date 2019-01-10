@@ -4,7 +4,8 @@ import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SheepsheadGameTest {
@@ -134,8 +135,6 @@ class SheepsheadGameTest {
       players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
 
-      assertNull(state<Map<String,String>>("lastTrickDetails"))
-
       performAction<Any?>(andy,  "playCard", 3)
       performAction<Any?>(brad,  "playCard", 4)
       performAction<Any?>(carl,  "playCard", 3)
@@ -226,23 +225,23 @@ class SheepsheadGameTest {
       with(teams) {
         assertEquals(size, 2)
 
-        first { it.first == "pickers" }.also {
-          assertTrue(it.second.contains(deryl), "Picking team should contain Deryl.")
+        first { it.name == "pickers" }.also {
+          assertTrue(it.members.contains(deryl), "Picking team should contain Deryl.")
         }
 
-        first { it.first == "setters" }.also {
-          assertTrue(it.second.contains(andy), "Picking team should contain Andy.")
-          assertTrue(it.second.contains(brad), "Picking team should contain Brad.")
-          assertTrue(it.second.contains(carl), "Picking team should contain Carl.")
-          assertTrue(it.second.contains(earl), "Picking team should contain Earl.")
+        first { it.name == "setters" }.also {
+          assertTrue(it.members.contains(andy), "Picking team should contain Andy.")
+          assertTrue(it.members.contains(brad), "Picking team should contain Brad.")
+          assertTrue(it.members.contains(carl), "Picking team should contain Carl.")
+          assertTrue(it.members.contains(earl), "Picking team should contain Earl.")
         }
 
       }
 
       val points = game.state<TeamPoints>("points")
 
-      val pickers = points.first { it.first.first == "pickers" }
-      val setters = points.first { it.first.first == "setters" }
+      val pickers = points.first { it.first.name == "pickers" }
+      val setters = points.first { it.first.name == "setters" }
 
       val pickerPoints = pickers.second ?: throw RuntimeException("No picker points")
       val setterPoints = setters.second ?: throw RuntimeException("No setter points")
