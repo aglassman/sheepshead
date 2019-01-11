@@ -5,16 +5,17 @@ import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 
 data class TrickTurn(
     val player: Player,
     val card: Card,
     val winner: Boolean
-)
+): Serializable
 
 class Trick(
     private val numberOfPlayers: Int
-) {
+): Serializable {
 
   companion object {
     val LOGGER = LoggerFactory.getLogger(Trick::class.java)

@@ -1,9 +1,11 @@
 package com.github.aglassman.cardengine
 
+import java.io.Serializable
+
 
 open class Player(
     val name: String
-) {
+): Serializable {
 
 
 

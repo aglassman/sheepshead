@@ -1,5 +1,7 @@
 package com.github.aglassman.cardengine
 
+import java.io.Serializable
+
 enum class ParamType(
     val type: String
 ) {
@@ -14,7 +16,7 @@ enum class ParamType(
   AnyMap("Map<String,Any>")
 }
 
-interface Game {
+interface Game: Serializable {
   fun gameType(): String
 
   fun availableStates(): List<String>
@@ -37,4 +39,7 @@ interface Game {
   fun <T> performAction(player: Player, action: String, parameters: Any? = null): T
 
   fun isComplete(): Boolean
+
+  fun setEmitter(eventEmitter: EventEmitter)
+
 }

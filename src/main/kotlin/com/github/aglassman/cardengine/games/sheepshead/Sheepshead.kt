@@ -11,7 +11,8 @@ class Sheepshead(
     players: List<Player>,
     private val deck: Deck = SheepsheadDeck(),
     gameNumber: Int = 1,
-    val partnerStyle: PartnerStyle = PartnerStyle.jackOfDiamonds
+    val partnerStyle: PartnerStyle = PartnerStyle.jackOfDiamonds,
+    private var emitter: EventEmitter = NoOpEmitter()
 ) : Game {
 
   companion object {
@@ -28,6 +29,10 @@ class Sheepshead(
     players = players,
     partnerStyle =  PartnerStyle.valueOf(gameConfigurations.get("partnerStyle") ?: PartnerStyle.jackOfDiamonds.name)
   )
+
+  override fun setEmitter(eventEmitter: EventEmitter) {
+    emitter = eventEmitter
+  }
 
   override fun gameType() = "sheepshead"
 
@@ -151,6 +156,8 @@ class Sheepshead(
     if (!listAvailableActions(standardPlayer).contains(actionToPerform)) {
       throw GameException("Player ${standardPlayer.name} cannot perform $action at this time.")
     }
+
+    emitter.emit(GameEvent(targetPlayer = standardPlayer, eventType = actionToPerform.name))
 
     return when (actionToPerform) {
       deal -> {

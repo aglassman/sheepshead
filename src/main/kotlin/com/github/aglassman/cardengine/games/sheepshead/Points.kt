@@ -3,6 +3,7 @@ package com.github.aglassman.cardengine.games.sheepshead
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.GameStateException
 import com.github.aglassman.cardengine.Player
+import java.io.Serializable
 
 typealias TeamPoints = List<Pair<Team, Int>>
 typealias PlayerScores = List<Pair<Player, Int>>
@@ -13,7 +14,7 @@ class Points(
     trickTracker: TrickTracker,
     burriedCards: BurriedCards,
     teams: Teams?
-) {
+): Serializable {
 
   private val scoring = scoring
   private val trickTracker = trickTracker

@@ -5,11 +5,12 @@ import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 
 
 class Blind(
     playerOrder: List<StandardPlayer>
-) {
+): Serializable {
 
   companion object {
     val LOGGER = LoggerFactory.getLogger(Blind::class.java)
@@ -20,7 +21,7 @@ class Blind(
   data class PickOption(
       val player: StandardPlayer,
       var pickOption: Option = Option.owait
-  )
+  ): Serializable
 
   private val pickOption: List<PickOption> = playerOrder.map { PickOption(it) }
 

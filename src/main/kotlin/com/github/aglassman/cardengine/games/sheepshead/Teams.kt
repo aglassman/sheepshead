@@ -2,17 +2,18 @@ package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.*
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 
 data class Team(
     val name: String,
     val members: List<Player>
-)
+): Serializable
 
 class Teams(
     defaultStyle: PartnerStyle,
     val picker: StandardPlayer? = null,
     val allPlayers: List<StandardPlayer>
-) {
+): Serializable {
 
   private var partnerStyle = defaultStyle
 

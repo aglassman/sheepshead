@@ -1,12 +1,16 @@
 package com.github.aglassman.cardengine.games.sheepshead
-import com.github.aglassman.cardengine.Card
-import com.github.aglassman.cardengine.Deck
+import com.github.aglassman.cardengine.*
 import com.github.aglassman.cardengine.Face.*
-import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 class SheepsheadGameTest {
 
@@ -116,11 +120,14 @@ class SheepsheadGameTest {
 
     val players = listOf(andy, brad, carl, deryl, earl)
 
+    val actionCounter = ActionCounterEmitter()
+
     // Game 2, so Brad should be dealer
     val game = Sheepshead(
         players = players,
         deck = testSheepsDeck,
-        gameNumber = 5
+        gameNumber = 5,
+        emitter = actionCounter
     )
 
     with(game) {
@@ -250,29 +257,72 @@ class SheepsheadGameTest {
       assertEquals(66, pickerPoints)
       assertEquals(54, setterPoints)
 
-      val gameWinner: Team = game.state("gameWinner") ?: throw RuntimeException("gameWinner should not be null.")
+      with(game) {
+        val gameWinner: Team = state("gameWinner")
+            ?: throw RuntimeException("gameWinner should not be null.")
 
-      assertEquals(Team("pickers", listOf(deryl)), gameWinner)
+        assertEquals(Team("pickers", listOf(deryl)), gameWinner)
 
-      val score = game.state<PlayerScores>("score")
+        val score = state<PlayerScores>("score")
 
-      assertEquals(5, score.size, "There should be a score for each player.")
+        assertEquals(5, score.size, "There should be a score for each player.")
 
-      val andysPoints = score.first { it.first == andy }.second
-      val bradsPoints = score.first { it.first == brad }.second
-      val carlsPoints = score.first { it.first == carl }.second
-      val derylsPoints = score.first { it.first == deryl }.second
-      val earlsPoints = score.first { it.first == earl }.second
+        val andysPoints = score.first { it.first == andy }.second
+        val bradsPoints = score.first { it.first == brad }.second
+        val carlsPoints = score.first { it.first == carl }.second
+        val derylsPoints = score.first { it.first == deryl }.second
+        val earlsPoints = score.first { it.first == earl }.second
 
-      println(score)
+        println(score)
 
-      assertEquals(4, derylsPoints)
-      assertEquals(-1, andysPoints)
-      assertEquals(-1, bradsPoints)
-      assertEquals(-1, carlsPoints)
-      assertEquals(-1, earlsPoints)
+        assertEquals(4, derylsPoints)
+        assertEquals(-1, andysPoints)
+        assertEquals(-1, bradsPoints)
+        assertEquals(-1, carlsPoints)
+        assertEquals(-1, earlsPoints)
+      }
+
+
+      // Check serialization
+      val baos = ByteArrayOutputStream()
+      val gzo = GZIPOutputStream(baos)
+      ObjectOutputStream(gzo).writeObject(game)
+      gzo.close()
+
+      println("${baos.size()} bytes")
+
+      with(ObjectInputStream(GZIPInputStream(ByteArrayInputStream(baos.toByteArray()))).readObject() as Game) {
+        val gameWinner: Team = state("gameWinner")
+            ?: throw RuntimeException("gameWinner should not be null.")
+
+        assertEquals(Team("pickers", listOf(deryl)), gameWinner)
+
+        val score = state<PlayerScores>("score")
+
+        assertEquals(5, score.size, "There should be a score for each player.")
+
+        val andysPoints = score.first { it.first == andy }.second
+        val bradsPoints = score.first { it.first == brad }.second
+        val carlsPoints = score.first { it.first == carl }.second
+        val derylsPoints = score.first { it.first == deryl }.second
+        val earlsPoints = score.first { it.first == earl }.second
+
+        println(score)
+
+        assertEquals(4, derylsPoints)
+        assertEquals(-1, andysPoints)
+        assertEquals(-1, bradsPoints)
+        assertEquals(-1, carlsPoints)
+        assertEquals(-1, earlsPoints)
+      }
 
     }
 
+    // check listener and actions
+    with(actionCounter) {
+      assertEquals(36, gameEvents.size)
+    }
+
   }
+
 }

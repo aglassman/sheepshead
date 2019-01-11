@@ -4,12 +4,13 @@ import com.github.aglassman.cardengine.Card
 import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 import java.util.*
 
 
 class BurriedCards(
     numberOfPlayers: Int
-) {
+): Serializable {
 
   private val burySize = when(numberOfPlayers) {
     5 -> 2

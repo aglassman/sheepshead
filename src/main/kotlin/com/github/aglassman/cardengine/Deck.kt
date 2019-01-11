@@ -1,5 +1,7 @@
 package com.github.aglassman.cardengine
 
+import java.io.Serializable
+
 
 enum class Suit(val unicode: String) {
   DIAMOND("♢"),
@@ -27,7 +29,7 @@ enum class Face(val unicode: String) {
 class Card(
     val suit: Suit,
     val face: Face
-) {
+): Serializable {
 
 
   override fun equals(other: Any?): Boolean {
@@ -73,13 +75,13 @@ open class StandardDeck : Deck(
 
 open class Deck(
     deck: List<Card>
-) {
+): Serializable {
 
   protected var _deck: List<Card> = deck.toList()
 
   fun deal(): Card {
     val dealtCard = _deck.first()
-    _deck = _deck.subList(1, _deck.size)
+    _deck = _deck.slice(1 until _deck.size)
     return dealtCard
   }
 
@@ -88,8 +90,8 @@ open class Deck(
       throw GameException("cannot deal $numberOfCards as only ${_deck.size} remain.")
     }
 
-    val dealt = _deck.subList(0, numberOfCards)
-    _deck = _deck.subList(numberOfCards, _deck.size)
+    val dealt = _deck.slice(0 until numberOfCards)
+    _deck = _deck.slice(numberOfCards until _deck.size)
 
     return dealt
   }

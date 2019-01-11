@@ -23,7 +23,7 @@ class CrazyEightsDeck(
 
   fun shufflePile() {
     if(cardsGone()) {
-      _deck = pile.subList(0, pile.size).shuffled()
+      _deck = pile.slice(0 until pile.size).shuffled()
       pile = emptyList()
     }
   }
@@ -85,7 +85,8 @@ enum class State { hand, currentCard, cardsRemaining, reshuffleCount }
 class CrazyEights(
     players: List<Player>,
     dealerIndex: Int = 0,
-    private val deck: CrazyEightsDeck = CrazyEightsDeck()
+    private val deck: CrazyEightsDeck = CrazyEightsDeck(),
+    private var emitter: EventEmitter = NoOpEmitter()
 ) : Game {
 
   private val players = players.map { StandardPlayer(name = it.name) }
@@ -103,6 +104,10 @@ class CrazyEights(
     } catch (e: IndexOutOfBoundsException) {
       throw GameException("dealerIndex must be within bounds of players(size=${players.size}).")
     }
+  }
+
+  override fun setEmitter(eventEmitter: EventEmitter) {
+    emitter = eventEmitter
   }
 
   override fun gameType() = "crazyeights"
