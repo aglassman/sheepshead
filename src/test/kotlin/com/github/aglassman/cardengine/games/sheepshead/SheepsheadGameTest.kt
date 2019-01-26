@@ -120,14 +120,14 @@ class SheepsheadGameTest {
 
     val players = listOf(andy, brad, carl, deryl, earl)
 
-    val actionCounter = ActionCounterEmitter()
+    val captureEmitter = CaptureEmitter()
 
     // Game 2, so Brad should be dealer
     val game = Sheepshead(
         players = players,
         deck = testSheepsDeck,
         gameNumber = 5,
-        emitter = actionCounter
+        emitter = captureEmitter
     )
 
     with(game) {
@@ -319,7 +319,7 @@ class SheepsheadGameTest {
     }
 
     // check listener and actions
-    with(actionCounter) {
+    with(captureEmitter) {
       assertEquals(36, gameEvents.size)
     }
 

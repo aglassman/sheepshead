@@ -18,6 +18,7 @@ class GameSession(
   }
 
   init {
+    if(players.distinct().size != players.size) throw GameException("There are duplicate players in the GameSession.")
     if (!gameMap.containsKey(gameType)) throw GameException("Unsupported gameType: ($gameType).")
   }
 

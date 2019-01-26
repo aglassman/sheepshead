@@ -62,7 +62,7 @@ class Sheepshead(
     }
   }
 
-  override fun dealer() = playerOrder.last()
+  fun dealer() = playerOrder.last()
 
   var teams: Teams? = null
 
@@ -76,7 +76,7 @@ class Sheepshead(
 
   override fun isComplete() = trickTracker.playIsComplete()
 
-  override fun deal() {
+  fun deal() {
     if (playerOrder.size == 5) {
       FiveHandDeal(deck, playerOrder, blind).deal()
       cardsDealt = true
@@ -264,7 +264,7 @@ class Sheepshead(
       scoring,
       trickTracker,
       burriedCards,
-      teams)
+      teams ?: throw GameStateException("Cannot calculate points when teams are unknown."))
 
 }
 

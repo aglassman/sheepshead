@@ -86,6 +86,11 @@ open class Deck(
   }
 
   fun deal(numberOfCards: Int = 1): List<Card> {
+    if(numberOfCards < 0) {
+      throw GameException("Invalid numberOfCards: $numberOfCards")
+    }
+
+
     if (numberOfCards > _deck.size) {
       throw GameException("cannot deal $numberOfCards as only ${_deck.size} remain.")
     }

@@ -24,10 +24,6 @@ interface Game: Serializable {
   @Throws(GameStateException::class)
   fun <T> state(key: String, forPlayer: Player? = null): T
 
-  fun dealer(): Player
-
-  fun deal()
-
   fun currentPlayer(): Player
 
   fun availableActions(player: Player): List<String>

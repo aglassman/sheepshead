@@ -20,6 +20,7 @@ class GameSessionTests {
     )
 
     gameSession.startNewGame()
+
     val currentGame = gameSession.getCurrentGame()
 
     assertEquals("sheepshead", currentGame?.gameType())
@@ -113,7 +114,7 @@ class GameSessionTests {
     assertEquals(0, game.state<List<Card>>("hand", deryl).size)
     assertEquals(0, game.state<List<Card>>("hand", earl).size)
 
-    game.deal()
+    game.performAction<Any?>(andy, "deal")
 
     assertEquals(6, game.state<List<Card>>("hand", andy).size)
     assertEquals(6, game.state<List<Card>>("hand", brad).size)

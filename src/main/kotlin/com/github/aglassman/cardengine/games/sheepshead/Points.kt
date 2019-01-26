@@ -1,7 +1,6 @@
 package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.GameException
-import com.github.aglassman.cardengine.GameStateException
 import com.github.aglassman.cardengine.Player
 import java.io.Serializable
 
@@ -10,16 +9,11 @@ typealias PlayerScores = List<Pair<Player, Int>>
 typealias PlayerScore = Pair<Player, Int>
 
 class Points(
-    scoring: Scoring,
-    trickTracker: TrickTracker,
-    burriedCards: BurriedCards,
-    teams: Teams?
+    private val scoring: Scoring,
+    private val trickTracker: TrickTracker,
+    private val burriedCards: BurriedCards,
+    private val teams: Teams
 ): Serializable {
-
-  private val scoring = scoring
-  private val trickTracker = trickTracker
-  private val burriedCards = burriedCards
-  private val teams = teams ?: throw GameStateException("Cannot calculate points when teams are unknown.")
 
   /**
    * Returns the teams, and their tallied trick points.

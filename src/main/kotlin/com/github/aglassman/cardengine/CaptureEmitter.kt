@@ -3,7 +3,7 @@ package com.github.aglassman.cardengine
 import java.io.Serializable
 
 
-class ActionCounterEmitter : EventEmitter, Serializable {
+class CaptureEmitter : EventEmitter, Serializable {
 
   val gameEvents = mutableListOf<GameEvent>()
 

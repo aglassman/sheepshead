@@ -145,9 +145,7 @@ class CrazyEights(
 
   }
 
-  override fun dealer() = dealer
-
-  override fun deal() =
+  fun deal() =
       repeat(5, { players.forEach { it.recieveCard(deck.deal()) } } )
           .also {
             deck.playCard(deck.deal())
