@@ -26,24 +26,21 @@ open class Player(
 }
 
 class StandardPlayer(name: String) : Player(name = name) {
-  private var _hand: MutableList<Card> = mutableListOf()
+  private var _hand: List<Card> = listOf()
 
-  fun hand() = _hand.toList()
+  fun hand() = _hand
 
   fun recieveCard(card: Card) {
-    _hand.addAll(listOf(card))
+    _hand = _hand.plus(card)
   }
 
   fun recieveCards(cards: List<Card>) {
-    // println("$name recieved ${cards.joinToString { "${it.toUnicodeString()}" }}")
-    _hand.addAll(cards)
+    _hand = _hand.plus(cards)
   }
 
   fun requestCard(cardIndex: Int) = requestCards(listOf(cardIndex)).first()
 
-  fun peekCard(cardIndex: Int): Card {
-    return _hand.get(cardIndex)
-  }
+  fun peekCard(cardIndex: Int) = _hand[cardIndex]
 
   fun requestCards(requestedCards: List<Int>): List<Card> {
 
@@ -59,7 +56,7 @@ class StandardPlayer(name: String) : Player(name = name) {
           _hand[it]
         }
 
-    _hand.removeAll(foundCards)
+    _hand = _hand.minus(foundCards)
 
     return foundCards
 
@@ -67,7 +64,5 @@ class StandardPlayer(name: String) : Player(name = name) {
 
   fun isPlayer(player: Player?) = this.name == player?.name
 
-  override fun toString(): String {
-    return name
-  }
+  override fun toString() = name
 }

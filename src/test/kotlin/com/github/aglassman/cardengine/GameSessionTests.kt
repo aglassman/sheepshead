@@ -102,8 +102,8 @@ class GameSessionTests {
     try {
       game.state<Any?>("random-thing")
       fail<Any?>("Should have thrown an exception")
-    } catch (e: GameStateException) {
-      assertEquals("No game state found for key: (random-thing)", e.message)
+    } catch (e: GameException) {
+      assertEquals("state (random-thing) is unavailable", e.message)
     }
 
     assertEquals(0, game.state<List<Card>>("blind").size)

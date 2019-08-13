@@ -7,12 +7,18 @@ import com.github.aglassman.cardengine.StandardPlayer
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 
+/**
+ * Tracks which card a player played, and if they won the trick.
+ */
 data class TrickTurn(
     val player: Player,
     val card: Card,
     val winner: Boolean
 ): Serializable
 
+/**
+ * Keeps track of the current round.
+ */
 class Trick(
     private val numberOfPlayers: Int
 ): Serializable {
@@ -21,15 +27,36 @@ class Trick(
     val LOGGER = LoggerFactory.getLogger(Trick::class.java)
   }
 
-  internal val playedCards: MutableList<Pair<Player, Card>> = mutableListOf()
+  private var playedCards: List<Pair<Player, Card>> = emptyList()
 
+  /**
+   * Return all the cards that have been played for this trick.
+   */
+  fun playedCards() = playedCards
+
+  /**
+   * Return the index of the seat who last payed a card.
+   */
   fun currentSeatIndex() = playedCards.size
 
+  /**
+   * Return if the trick has been taken yet.
+   */
   fun trickTaken() = playedCards.size == numberOfPlayers
 
+  /**
+   * Play a card out of a players had into the trick
+   */
   fun playCard(player: StandardPlayer, cardIndex: Int) {
+
+    if(trickTaken()) {
+      throw GameException("Cannot play card, this trick is already taken.")
+    }
+
     val proposedCard = player.peekCard(cardIndex)
+
     LOGGER.info("$player played ${proposedCard.toUnicodeString()}")
+
     if(suitLead() != null
         && proposedCard.sheepsheadSuit() != suitLead()
         && player.hasSuitInHand(suitLead()!!))  {
@@ -39,15 +66,21 @@ class Trick(
     val cardToPlay = player.requestCard(cardIndex)
 
     if(cardToPlay == proposedCard) {
-      playedCards.add(player to cardToPlay)
+      playedCards = playedCards.plus(player to cardToPlay)
     } else {
       LOGGER.error("Card to play (${cardToPlay.toUnicodeString()})  did not match proposed card (${proposedCard.toUnicodeString()}).")
     }
 
   }
 
+  /**
+   * Returns the lead suit for this trick.
+   */
   fun suitLead(): SheepsheadSuit? = playedCards.firstOrNull().let { it?.second?.sheepsheadSuit() }
 
+  /**
+   * Returns the trick winner.
+   */
   fun trickWinner(): Player? {
     return if(suitLead() == SheepsheadSuit.Trump) {
       playedCards
@@ -67,7 +100,17 @@ class Trick(
     }
   }
 
+  /**
+   * Returns the number of points in the trick.
+   */
   fun trickPoints() = playedCards
       .map { it.second.points() }
       .sum()
+
+  fun state(): Map<String, Any?> = mapOf(
+      "playedCards" to playedCards,
+      "trickTaken" to trickTaken(),
+      "trickPoints" to trickPoints(),
+      "trickWinner" to trickWinner()
+  )
 }

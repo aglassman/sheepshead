@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.util.*
 
-
+/**
+ * TrickTracker tracks all the tricks for one hand.
+ */
 class TrickTracker(
     playerOrder: List<StandardPlayer>
 ): Serializable {
@@ -21,30 +23,57 @@ class TrickTracker(
     else -> throw GameException("Unsupported number of players ${playerOrder.size}")
   }
 
-  var trickPlayerOrder = playerOrder.toMutableList()
+  var trickPlayerOrder = playerOrder.toList()
 
-  private val tricks: MutableList<Trick> = mutableListOf()
+  private var tricks = emptyList<Trick>()
 
-  fun playIsComplete() = tricks.filter { it.trickTaken() }.size == cardsPerHand // fix this
+  /**
+   * Returns true of all tricks for the hand have been taken
+   */
+  fun playIsComplete() = tricks.filter { it.trickTaken() }.size == cardsPerHand
 
-  fun tricks() = tricks.toList()
+  /**
+   * Returns a list of all tricks that have been played thus far.
+   */
+  fun tricks() = tricks
 
-  fun currentTrick(): Trick {
-
-    val currentTrick = tricks.firstOrNull { !it.trickTaken() }
-
-    return if(currentTrick != null) {
-      currentTrick
-    } else {
-      newTrick()
-    }
-
+  /**
+   * Returns the most current trick that has not been taken.
+   */
+  fun currentTrick(): Trick? {
+    return tricks.firstOrNull { !it.trickTaken() }
   }
 
-  fun waitingOnPlayer() = currentTrick()?.let { trickPlayerOrder[it.currentSeatIndex()] }
+  /**
+   * Returns the player who should play the next card.
+   */
+  fun waitingOnPlayer(): Player? {
+    val currentTrick = currentTrick()
 
+    if(currentTrick != null) {
+      return trickPlayerOrder[currentTrick.currentSeatIndex()]
+    }
 
-  private fun newTrick(): Trick {
+    val lastTrick = lastTrick()
+
+    if(lastTrick != null) {
+      return lastTrick.trickWinner()
+    }
+
+    return null
+  }
+
+  /**
+   * Create a new trick if possible.  There should be no current trick, and last trick must
+   * be complete.
+   */
+  fun newTrick(): Trick {
+    val currentTrick = currentTrick()
+
+    if(currentTrick != null) {
+      return currentTrick
+    }
+
     val lastTrick = lastTrick()
 
     if(lastTrick != null && !playIsComplete()) {
@@ -57,11 +86,14 @@ class TrickTracker(
     }
 
     val newTrick = Trick(trickPlayerOrder.size)
-    tricks.add(newTrick)
+    tricks = tricks.plus(newTrick)
     LOGGER.debug("Trick: ${tricks.size} created.")
     return newTrick
   }
 
+  /**
+   * Returns the last taken trick.
+   */
   fun lastTrick(): Trick? {
     return tricks
         .filter { it.trickTaken() }
@@ -69,11 +101,8 @@ class TrickTracker(
   }
 
   /**
-   * Returns a list of triples representing the order of the last completed trick, or null if no
+   * Returns a list of TrickTurns representing the order of the last completed trick, or null if no
    * tricks have been completed yet.
-   * first: player who played the card
-   * second: the card played
-   * third: true if the card won the trick
    */
   fun lastTrickDetails(): List<TrickTurn>? {
     val lastCompleteTrick = tricks
@@ -82,7 +111,7 @@ class TrickTracker(
 
     return lastCompleteTrick?.let {
       val trickWinner = it.trickWinner()!!
-      it.playedCards.map { TrickTurn(it.first, it.second, it.first == trickWinner) }
+      it.playedCards().map { TrickTurn(it.first, it.second, it.first == trickWinner) }
     }
   }
 

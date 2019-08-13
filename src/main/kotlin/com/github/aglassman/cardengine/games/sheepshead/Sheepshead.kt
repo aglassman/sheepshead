@@ -7,11 +7,20 @@ import org.slf4j.LoggerFactory
 import java.util.Collections.emptyList
 import java.util.Collections.rotate
 
+/**
+ *
+ * players - The list of players involved in the game, in the table order they are sitting.
+ * deck - The deck of cards to use. Game does not re-shuffle the deck
+ * gameNumber - The number game in the round.  This determines dealer
+ * partnerStyle - Specifies the type of partner style if applicable.
+ * emitter - Reference to the game event emitter.
+ *
+ */
 class Sheepshead(
     players: List<Player>,
     private val deck: Deck = SheepsheadDeck(),
     gameNumber: Int = 1,
-    val partnerStyle: PartnerStyle = PartnerStyle.jackOfDiamonds,
+    val gameOptions: SheepsheadGameOptions = SheepsheadGameOptions(),
     private var emitter: EventEmitter = NoOpEmitter()
 ) : Game {
 
@@ -25,11 +34,6 @@ class Sheepshead(
     }
   }
 
-  constructor(players: List<Player>, gameConfigurations: Map<String,String>) : this(
-    players = players,
-    partnerStyle =  PartnerStyle.valueOf(gameConfigurations.get("partnerStyle") ?: PartnerStyle.jackOfDiamonds.name)
-  )
-
   override fun setEmitter(eventEmitter: EventEmitter) {
     emitter = eventEmitter
   }
@@ -42,6 +46,8 @@ class Sheepshead(
       .map { StandardPlayer(it.name) }
       .toMutableList()
       .apply { rotate(this, -1 * (gameNumber)) }
+      .toList()
+
 
   private val trickTracker = TrickTracker(playerOrder = playerOrder)
 
@@ -58,7 +64,7 @@ class Sheepshead(
     } else if(teams?.needToCallPartner() ?: false) {
       teams?.picker!!
     } else {
-      trickTracker.waitingOnPlayer()
+      trickTracker.waitingOnPlayer() ?: dealer()
     }
   }
 
@@ -86,8 +92,8 @@ class Sheepshead(
   }
 
   private fun playCard(player: StandardPlayer, cardIndex: Int) {
-    trickTracker.currentTrick().playCard(player, cardIndex)
-    trickTracker.currentTrick() // Will trigger creation of next trick if applicable.
+    trickTracker.newTrick()
+    trickTracker.currentTrick()?.playCard(player, cardIndex)
   }
 
   override fun availableActions(player: Player) = listAvailableActions(toStandardPlayer(player)).map { it.name }
@@ -121,6 +127,7 @@ class Sheepshead(
       !burriedCards.cardsBurried() && player == teams?.picker -> listOf(Action.bury)
       teams?.needToCallPartner() ?: false -> partnerActions()
       player.isPlayer(trickTracker.waitingOnPlayer()) -> listOf(playCard)
+      blind.blindRoundComplete() && !(teams?.needToCallPartner() ?: true) -> listOf(beginPlay)
 
       // play
       else -> emptyList()
@@ -137,7 +144,7 @@ class Sheepshead(
   }
 
   private fun partnerActions(): List<Action> {
-    return when(partnerStyle) {
+    return when(gameOptions.partnerStyle) {
       PartnerStyle.calledAce -> listOf(callAce)
       else -> listOf(goAlone, startPlay)
     }
@@ -159,52 +166,60 @@ class Sheepshead(
 
     emitter.emit(GameEvent(targetPlayer = standardPlayer, eventType = actionToPerform.name))
 
-    return when (actionToPerform) {
-      deal -> {
-        deal()
-        LOGGER.info("$standardPlayer dealt")
-        log(standardPlayer, actionToPerform)
-      }
-      pass -> {
-        blind.pass(standardPlayer)
-        LOGGER.info("$standardPlayer passed")
-        log(standardPlayer, actionToPerform)
-      }
-      pick -> {
-        blind.pick(standardPlayer)
-        LOGGER.info("$standardPlayer picked")
-        teams = Teams(partnerStyle, standardPlayer, playerOrder)
-        log(standardPlayer, actionToPerform)
-      }
-      bury -> {
-        burriedCards.bury(standardPlayer, parameters as List<Int>)
-        if(partnerStyle == PartnerStyle.jackOfDiamonds) {
-          teams?.callPartner()
+    val actions = mapOf(
+        deal to {
+          deal()
+          LOGGER.info("$standardPlayer dealt")
+          log<T>(standardPlayer, actionToPerform)
+        },
+        pass to {
+          blind.pass(standardPlayer)
+          LOGGER.info("$standardPlayer passed")
+          log<T>(standardPlayer, actionToPerform)
+        },
+        pick to {
+          blind.pick(standardPlayer)
+          LOGGER.info("$standardPlayer picked")
+          teams = Teams(gameOptions.partnerStyle, standardPlayer, playerOrder)
+          log<T>(standardPlayer, actionToPerform)
+        },
+        bury to {
+          burriedCards.bury(standardPlayer, parameters as List<Int>)
+          if(gameOptions.partnerStyle == PartnerStyle.jackOfDiamonds) {
+            teams?.callPartner()
+          }
+          LOGGER.info("$standardPlayer burried")
+          log<T>(standardPlayer, actionToPerform)
+        },
+        callAce to {
+          teams?.callPartner(Suit.valueOf(parameters as String))
+          log<T>(standardPlayer, actionToPerform)
+        },
+        goAlone to {
+          teams?.goAlone()
+          log<T>(standardPlayer, actionToPerform)
+        },
+        playCard to {
+          playCard(standardPlayer, parameters as Int)
+          log<T>(standardPlayer, actionToPerform)
+        },
+        beginPlay to {
+          trickTracker.newTrick()
+          log<T>(standardPlayer, actionToPerform)
         }
-        LOGGER.info("$standardPlayer burried")
-        log(standardPlayer, actionToPerform)
-      }
-      callAce -> {
-        teams?.callPartner(Suit.valueOf(parameters as String))
-        log(standardPlayer, actionToPerform)
-      }
-      goAlone -> {
-        teams?.goAlone()
-        log(standardPlayer, actionToPerform)
-      }
-      playCard -> {
-        playCard(standardPlayer, parameters as Int)
-        log(standardPlayer, actionToPerform)
-      }
-      else -> throw GameException("No mapping for action (${actionToPerform.name}).")
-    }
+    )
+
+    return actions[actionToPerform]
+        ?.invoke()
+        ?: throw GameException("No mapping for action (${actionToPerform.name}).")
+
 
   }
 
   private fun <T> log(player: Player, action: Action) = "${player.name} performed ${action.name}" as T
 
   override fun availableStates(): List<String> {
-    return mutableListOf<String>()
+    return listOf<String>()
         .plus("hand")
         .plus("blind")
         .plus("partnerStyle")
@@ -228,7 +243,7 @@ class Sheepshead(
         .let {
           if(trickTracker.playIsComplete()) {
             it
-                .plus("points")
+                .plus("gameOutcome")
                 .plus("gameWinner")
                 .plus("score")
           } else {
@@ -247,14 +262,14 @@ class Sheepshead(
     return when (key) {
       "hand" -> toStandardPlayer(forPlayer ?: throw GameException("Must specify player for state (hand).")).hand()
       "blind" -> blind.peek()
-      "currentTrick" -> trickTracker.currentTrick()
+      "currentTrick" -> trickTracker.currentTrick()?.state()
       "lastTrickDetails" -> trickTracker.lastTrickDetails()
       "lastTrickWinner" -> trickTracker.lastTrick()?.trickWinner()
       "teams" -> teams?.teams()
-      "points" -> points().determinePoints()
+      "gameOutcome" -> points().determinePoints()
       "gameWinner" -> points().determineWinner()
       "score" -> points().determineScore()
-      "partnerStyle" -> partnerStyle
+      "partnerStyle" -> gameOptions.partnerStyle
       "partnerKnown" -> teams?.partnerKnown()
       else -> throw GameStateException("No game state found for key: ($key)")
     } as T

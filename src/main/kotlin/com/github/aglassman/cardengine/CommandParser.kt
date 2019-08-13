@@ -1,6 +1,9 @@
 package com.github.aglassman.cardengine
 
-
+/**
+ * A class that contains the raw input from the user.  Provides convenience methods
+ * to parse out the command, and parameters.
+ */
 data class Input(
     val rawInput: String
 ) {
@@ -16,6 +19,9 @@ data class Input(
   fun paramsAsStrList(delimiter: String = " ") = paramString.split(delimiter)
 }
 
+/**
+ * Process an input for a given game and player.
+ */
 fun processCommand(
     game: Game,
     player: Player,

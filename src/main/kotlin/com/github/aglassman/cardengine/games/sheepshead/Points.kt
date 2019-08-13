@@ -4,10 +4,33 @@ import com.github.aglassman.cardengine.GameException
 import com.github.aglassman.cardengine.Player
 import java.io.Serializable
 
-typealias TeamPoints = List<Pair<Team, Int>>
-typealias PlayerScores = List<Pair<Player, Int>>
-typealias PlayerScore = Pair<Player, Int>
+typealias PlayerScores = List<PlayerPoints>
 
+data class GameOutcome(
+    val winners: TeamPoints,
+    val losers: TeamPoints
+) {
+  fun byTeamName(name: String) = when(name) {
+    winners.team.name -> winners
+    losers.team.name -> losers
+    else -> throw GameException("No team by name: $name was found.")
+  }
+}
+
+data class PlayerPoints(
+    val player: Player,
+    val points: Int
+)
+
+data class TeamPoints(
+    val team: Team,
+    val points: Int
+)
+
+/**
+ * Points are determined by the type of scoring, the tricks taken by the teams, and any
+ * burried cards, or blind cards.
+ */
 class Points(
     private val scoring: Scoring,
     private val trickTracker: TrickTracker,
@@ -19,7 +42,7 @@ class Points(
    * Returns the teams, and their tallied trick points.
    * Returned ranked in descending order by points.
    */
-  fun determinePoints(): TeamPoints {
+  fun determinePoints(): GameOutcome {
 
     val trickPoints = trickTracker
         .calculateCurrentPoints(teams)
@@ -37,8 +60,11 @@ class Points(
       }
     }
 
-    return trickPoints.toList()
+    val teamPointList = trickPoints.toList()
         .sortedByDescending { it.second }
+        .map { TeamPoints(it.first, it.second) }
+
+    return GameOutcome(teamPointList[0], teamPointList[1])
   }
 
   fun determineWinner(): Team =
@@ -51,7 +77,7 @@ class Points(
               ?: throw GameException("Could not determine winner for leaster scoring.")
         }
         else -> {
-          determinePoints().maxBy { it.second }?.first ?: throw GameException("Could not determine winner for normal scoring.")
+          determinePoints().winners.team
         }
       }
 
@@ -65,7 +91,7 @@ class Points(
       }
       Scoring.doubler -> {
         scoreNormal(teamPoints)
-            .map { it.first to it.second * 2 }
+            .map { PlayerPoints(it.player, it.points * 2) }
       }
       Scoring.leaster -> {
         scoreLeaster(teamPoints)
@@ -73,40 +99,34 @@ class Points(
     }
   }
 
-  private fun scoreNormal(teamPoints: TeamPoints): PlayerScores = when(teams.teams().size) {
+  private fun scoreNormal(gameOutcome: GameOutcome): PlayerScores = when(teams.teams().size) {
     2 -> {
       // two teams, assumes there was a picker
 
-      val winners = teamPoints.get(0).first.members
-      val losers = teamPoints.get(1).first.members
-
-      val pickerWon = winners.contains(teams.picker as Player)
-
-      val scoreList = mutableListOf<PlayerScore>()
+      val winners = gameOutcome.winners.team.members
+      val losers = gameOutcome.losers.team.members
 
       when(winners.size) {
         1 -> {
-          scoreList.add(teams.picker!! to 4)
-          losers.forEach { player -> scoreList.add(player to  -1) }
+          listOf(PlayerPoints(teams.picker!!, 4))
+              .plus(losers.map { PlayerPoints(it, -1) })
         }
         2 -> {
-          scoreList.add(teams.picker!! to 2)
-          scoreList.add(teams.partner()!! to 1)
-          losers.forEach { player -> scoreList.add(player to  -1) }
+          listOf(PlayerPoints(teams.picker!!, 2))
+              .plus(PlayerPoints(teams.partner()!!, 1))
+              .plus(losers.map { PlayerPoints(it, -1) })
         }
         3 -> {
-          scoreList.add(teams.picker!! to -2)
-          scoreList.add(teams.partner()!! to -1)
-          winners.forEach { player -> scoreList.add(player to  1) }
+          listOf(PlayerPoints(teams.picker!!, -2))
+              .plus(PlayerPoints(teams.partner()!!, -1))
+              .plus(winners.map { PlayerPoints(it, 1) })
         }
         4 -> {
-          scoreList.add(teams.picker!! to -4)
-          winners.forEach { player -> scoreList.add(player to  1) }
+          listOf(PlayerPoints(teams.picker!!, -4))
+              .plus(winners.map { PlayerPoints(it, 1) })
         }
-        else -> {}
+        else -> emptyList()
       }
-
-      scoreList.toList()
     }
     else -> {
       emptyList()
@@ -117,7 +137,8 @@ class Points(
   // 1) draw cards, trump must be drawn to win
   // 2) split pot
   // 3) one tie all tie
-  private fun scoreLeaster(teamPoints: TeamPoints): PlayerScores {
+  private fun scoreLeaster(gameOutcome: GameOutcome): PlayerScores {
+
     val leasterWinner = trickTracker.tricks()
         .filter { it.trickTaken() }
         .groupBy { it.trickWinner() }
@@ -125,16 +146,13 @@ class Points(
         .map { Pair(it.key, it.value.map { it.trickPoints() }.sum()) }
         .minBy { it.second }
 
-    val scoreList = mutableListOf<Pair<Player, Int>>()
-
     val winner: Player = leasterWinner?.first!!
 
-    scoreList.add(winner to 4)
-
-    teams.allPlayers
+    val scores = teams.allPlayers
         .filter { it != winner }
-        .forEach { scoreList.add( it to -1) }
+        .map { PlayerPoints(it, -1) }
 
-    return scoreList.toList()
+    return listOf(PlayerPoints(winner, 4))
+        .plus(scores)
   }
 }

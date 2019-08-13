@@ -1,7 +1,12 @@
 package com.github.aglassman.cardengine.games.sheepshead
-import com.github.aglassman.cardengine.*
+import com.github.aglassman.cardengine.Card
+import com.github.aglassman.cardengine.Deck
 import com.github.aglassman.cardengine.Face.*
+import com.github.aglassman.cardengine.Game
+import com.github.aglassman.cardengine.Player
 import com.github.aglassman.cardengine.Suit.*
+import com.github.aglassman.cardengine.emitter.CaptureEmitter
+import com.github.aglassman.cardengine.emitter.ComposedEmitter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -127,7 +132,7 @@ class SheepsheadGameTest {
         players = players,
         deck = testSheepsDeck,
         gameNumber = 5,
-        emitter = captureEmitter
+        emitter = ComposedEmitter(listOf(captureEmitter))
     )
 
     with(game) {
@@ -141,6 +146,8 @@ class SheepsheadGameTest {
       println()
       players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
       println()
+
+      performAction<Any?>(earl,  "beginPlay")
 
       performAction<Any?>(andy,  "playCard", 3)
       performAction<Any?>(brad,  "playCard", 4)
@@ -245,13 +252,13 @@ class SheepsheadGameTest {
 
       }
 
-      val points = game.state<TeamPoints>("points")
+      val outcome = game.state<GameOutcome>("gameOutcome")
 
-      val pickers = points.first { it.first.name == "pickers" }
-      val setters = points.first { it.first.name == "setters" }
+      val pickers = outcome.byTeamName("pickers")
+      val setters = outcome.byTeamName("setters")
 
-      val pickerPoints = pickers.second ?: throw RuntimeException("No picker points")
-      val setterPoints = setters.second ?: throw RuntimeException("No setter points")
+      val pickerPoints = pickers.points
+      val setterPoints = setters.points
 
       assertEquals(120, pickerPoints + setterPoints)
       assertEquals(66, pickerPoints)
@@ -267,11 +274,11 @@ class SheepsheadGameTest {
 
         assertEquals(5, score.size, "There should be a score for each player.")
 
-        val andysPoints = score.first { it.first == andy }.second
-        val bradsPoints = score.first { it.first == brad }.second
-        val carlsPoints = score.first { it.first == carl }.second
-        val derylsPoints = score.first { it.first == deryl }.second
-        val earlsPoints = score.first { it.first == earl }.second
+        val andysPoints = score.first { it.player == andy }.points
+        val bradsPoints = score.first { it.player == brad }.points
+        val carlsPoints = score.first { it.player == carl }.points
+        val derylsPoints = score.first { it.player == deryl }.points
+        val earlsPoints = score.first { it.player == earl }.points
 
         println(score)
 
@@ -301,11 +308,11 @@ class SheepsheadGameTest {
 
         assertEquals(5, score.size, "There should be a score for each player.")
 
-        val andysPoints = score.first { it.first == andy }.second
-        val bradsPoints = score.first { it.first == brad }.second
-        val carlsPoints = score.first { it.first == carl }.second
-        val derylsPoints = score.first { it.first == deryl }.second
-        val earlsPoints = score.first { it.first == earl }.second
+        val andysPoints = score.first { it.player == andy }.points
+        val bradsPoints = score.first { it.player == brad }.points
+        val carlsPoints = score.first { it.player == carl }.points
+        val derylsPoints = score.first { it.player == deryl }.points
+        val earlsPoints = score.first { it.player == earl }.points
 
         println(score)
 
@@ -320,7 +327,7 @@ class SheepsheadGameTest {
 
     // check listener and actions
     with(captureEmitter) {
-      assertEquals(36, gameEvents.size)
+      assertEquals(37, gameEvents.size)
     }
 
   }

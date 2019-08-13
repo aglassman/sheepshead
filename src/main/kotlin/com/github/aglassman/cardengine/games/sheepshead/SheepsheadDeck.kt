@@ -2,43 +2,13 @@ package com.github.aglassman.cardengine.games.sheepshead
 
 import com.github.aglassman.cardengine.*
 
+private val excludedCards = listOf(Face.TWO, Face.THREE, Face.FOUR, Face.FIVE, Face.SIX)
 
 class SheepsheadDeck : Deck(
-    deck = Suit.values()
-        .map { it to Face.values() }
-        .flatMap { pair ->
-          pair.second
-              .filter {
-                !listOf(
-                    Face.TWO,
-                    Face.THREE,
-                    Face.FOUR,
-                    Face.FIVE,
-                    Face.SIX)
-                    .contains(it)
-              }
-              .map {
-                Card(pair.first, it)
-              }
-        }.shuffled()
-)
-
-val pointMap = mapOf(
-    Face.SEVEN to 0,
-    Face.EIGHT to 0,
-    Face.NINE to 0,
-    Face.JACK to 2,
-    Face.QUEEN to 3,
-    Face.KING to 4,
-    Face.TEN to 10,
-    Face.ACE to 11
-)
-
-val suitMap = mapOf(
-    Suit.CLUB to "clubs",
-    Suit.DIAMOND to "diamonds",
-    Suit.HEART to "hearts",
-    Suit.SPADE to "spades"
+    deck = StandardDeck()
+        .let { it.deal(it.cardsLeft()) }
+        .filterNot { excludedCards.contains(it.face) }
+        .shuffled()
 )
 
 internal fun Card.sheepsheadSuit(): SheepsheadSuit {
@@ -53,9 +23,18 @@ internal fun Card.sheepsheadSuit(): SheepsheadSuit {
   }
 }
 
-fun Card.isTrump() = this.sheepsheadSuit() == SheepsheadSuit.Trump
+private val pointMap = mapOf(
+    Face.SEVEN to 0,
+    Face.EIGHT to 0,
+    Face.NINE to 0,
+    Face.JACK to 2,
+    Face.QUEEN to 3,
+    Face.KING to 4,
+    Face.TEN to 10,
+    Face.ACE to 11
+)
 
-val powerList = listOf(
+private val powerList = listOf(
     Face.SEVEN,
     Face.EIGHT,
     Face.NINE,
@@ -65,23 +44,6 @@ val powerList = listOf(
     Face.JACK,
     Face.QUEEN)
 
-fun Card.power() = powerList.indexOf(this.face)
+internal fun Card.power() = powerList.indexOf(this.face)
 
-fun Card.points() = pointMap.get(this.face) ?: 0
-
-
-class CardComparitor: Comparator<Card> {
-  override fun compare(o1: Card?, o2: Card?): Int {
-
-    if(o1 == null || o2 == null) {
-      throw GameException("Cannot sort null cards.")
-    }
-
-    return if (o1.isTrump() && !o2.isTrump()) {
-      1
-    } else {
-      o1.power().compareTo(o2.power())
-    }
-  }
-
-}
+internal fun Card.points() = pointMap.get(this.face) ?: 0

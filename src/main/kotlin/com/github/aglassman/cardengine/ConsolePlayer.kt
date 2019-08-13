@@ -1,6 +1,9 @@
 package com.github.aglassman.cardengine
 
-
+/**
+ * A basic UI that allows all users to play from the command line.  Basically just for local
+ * testing.
+ */
 class ConsolePlayer {
 
 

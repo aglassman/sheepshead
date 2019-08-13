@@ -276,6 +276,8 @@ class SheepsheadTurnTest {
     game.performAction<Any?>(deryl, "pick")
     game.performAction<Any?>(deryl, "bury", listOf(4, 6))
 
+    game.performAction<Any?>(earl, "beginPlay")
+
     // Verify it is Andy's turn
     assertTrue(game.availableActions(andy).contains("playCard"), "Andy should be able to play a card.")
 
@@ -349,6 +351,7 @@ class SheepsheadTurnTest {
       performAction<Any?>(carl, "pass")
       performAction<Any?>(deryl, "pick")
       performAction<Any?>(deryl, "bury", listOf(4, 6))
+      performAction<Any?>(earl, "beginPlay")
       performAction<Any?>(andy, "playCard", 2)
 
       try {
@@ -389,6 +392,8 @@ class SheepsheadTurnTest {
 
       players.forEach { player -> println("$player's hand: ${game.state<List<Card>>("hand", player).joinToString { "${it.toUnicodeString()}" }}") }
 
+      performAction<Any?>(andy, "beginPlay")
+
       performAction<Any?>(andy,  "playCard", 3)
       performAction<Any?>(brad,  "playCard", 4)
       performAction<Any?>(carl,  "playCard", 3)
@@ -403,7 +408,7 @@ class SheepsheadTurnTest {
 
       assertEquals(deryl, trickWinner, "Trick winner should be Deryl.")
 
-      assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl.")
+      assertEquals(deryl, game.currentPlayer(), "Current player should be Deryl as he won the last trick.")
 
       assertTrue(game.availableActions(deryl).contains("playCard"), "It should be Deryl's turn now since he won the last trick.")
 

@@ -144,7 +144,7 @@ class BlindTests {
           listOf(
               Card(Suit.HEART, Face.ACE),
               Card(Suit.CLUB, Face.QUEEN)),
-          peek(deryl))
+          peek())
 
       pick(deryl)
     }
