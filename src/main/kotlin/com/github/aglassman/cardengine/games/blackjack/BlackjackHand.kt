@@ -8,18 +8,24 @@ import com.github.aglassman.cardengine.games.blackjack.PointType.SOFT
 
 enum class PointType {HARD, SOFT}
 
-class BlackjackHand {
+data class BlackjackHand(
+    private val cards: List<Card> = emptyList(),
+    val hideFirstCard: Boolean = false,
+    val stay: Boolean = false
+) {
 
-  val cards: List<Card>
+  fun showingCards() = cards.drop(if(hideFirstCard) 1 else 0)
 
-  constructor(cards: List<Card>) {
-    this.cards = cards
+  fun points(): List<Int> {
+    if(cards.size == 0) {
+      return listOf(0)
+    }
+
+    return points(showingCards())
   }
 
-  fun points() = points(cards)
-
-  fun pointType() = when(points().size) {
-    1 -> HARD
+  fun pointType() = when (showingCards().indexOfFirst { it.face == Face.ACE }) {
+    -1 -> HARD
     else -> SOFT
   }
 
@@ -29,7 +35,7 @@ class BlackjackHand {
 
   fun isBusted() = points().none { it <= 21 }
 
-  fun isBlackjack() =
+  fun isNatural21() =
       cards.size == 2
           && cards.map { it.face }.contains(Face.ACE)
           && cards.filter { it.face != Face.ACE }
@@ -37,35 +43,37 @@ class BlackjackHand {
           .pointValue()
           .contains(10)
 
+  fun addCard(card: Card) = this.copy(
+      cards = this.cards.plus(card)
+  )
+
+  fun hit(card: Card) = addCard(card)
+
+  fun stay() = this.copy(stay = true)
+
+  fun flipFirstCard() = this.copy(hideFirstCard = false)
+
   override fun toString(): String {
-    return "BlackjackHand(cards=$cards, points=${points()})"
+    return "BlackjackHand(hiddenCard=$hideFirstCard showingCards=${showingCards()}, points=${points()})"
   }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as BlackjackHand
-
-    if (cards != other.cards) return false
-
-    return true
-  }
-
-  override fun hashCode(): Int {
-    return cards.hashCode()
-  }
-
 
 }
 
-fun points(cards: List<Card>): List<Int> = cards
-    .map { it.pointValue() }
-    .reduce { points: List<Int>, acc: List<Int> -> points
-        .flatMap { p1 -> acc.map { p2 -> p1 + p2 } }
-        .distinct() }
+private fun points(cards: List<Card>): List<Int>  {
+  return if(cards.size > 0) {
+    cards
+        .map { it.pointValue() }
+        .reduce { points: List<Int>, acc: List<Int> -> points
+            .flatMap { p1 -> acc.map { p2 -> p1 + p2 } }
+            .distinct() }
+  } else {
+    listOf(0)
+  }
+}
 
 internal fun Card.pointValue(): List<Int> = pointValue(this.face)
+
+
 
 fun pointValue(face: Face) = when(face) {
   Face.TWO -> listOf(2)

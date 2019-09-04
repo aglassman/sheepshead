@@ -6,23 +6,56 @@ import com.github.aglassman.cardengine.Player
 enum class Action(
     val description: String,
     val actionAllowed: (blackjack: Blackjack, player: Player) -> Boolean = { bj, p -> false },
-    val performAction: (blackjack: Blackjack, player: Player) -> Any? = {bj, p ->  }
+    val performAction: (blackjack: Blackjack, player: Player, parameters: Any?) -> Any? = {bj, pl, pa ->  }
 ) {
   bet(
       description = "Place a bet before the deal.",
-      actionAllowed = blockDealer),
+      actionAllowed = and(
+          listOf(
+              blockDealer,
+              playerCanPlaceInitialBet)),
+      performAction = { bj, player, parameters ->
+        bj.currentDeal().placeInitialBet(player, parameters as Int)
+      }),
 
   sit(
       description = "Sit out for this hand.",
-      actionAllowed = blockDealer),
+      actionAllowed = and(
+          listOf(
+              blockDealer,
+              playerCanPlaceInitialBet))),
 
   deal(
       description = "Deal cards to everyone that has placed a bet.",
-      actionAllowed = allowDealer),
+      actionAllowed = and(
+          listOf(
+              allowDealer,
+              { bj, p ->
+                !bj.currentDeal().cardsDealt()
+              })),
+      performAction = { bj, player, params ->
+        bj.currentDeal().deal()
+      }),
 
-  hit("Request another card from the dealer."),
+  hit(
+      description = "Request another card from the dealer.",
+      actionAllowed = and(listOf(
+          cardsDealt,
+          isCurrentPlayer
+      )),
+      performAction = { bj, player, params ->
+        bj.currentDeal().hitCurrentHand()
+      }),
 
-  stay("Signal the dealer that you do not want any more cards."),
+  stay(
+      description = "Signal the dealer that you do not want any more cards.",
+      actionAllowed = and(listOf(
+          cardsDealt,
+          isCurrentPlayer
+      )),
+      performAction = { bj, player, params ->
+        bj.currentDeal().stayCurrentHand()
+      }),
 
   doubleDown("Double your bet and recieve only one more card."),
 
@@ -30,6 +63,27 @@ enum class Action(
 
 }
 
+val cardsDealt  = { blackjack: Blackjack, player: Player ->
+  blackjack.currentDeal().cardsDealt()
+}
 
-val blockDealer = { blackjack: Blackjack, player: Player ->  !player.isDealer() }
-val allowDealer = { blackjack: Blackjack, player: Player ->  player.isDealer() }
+val blockDealer = { blackjack: Blackjack, player: Player ->
+  !(blackjack.currentDealer() == player)
+}
+
+val allowDealer = { blackjack: Blackjack, player: Player ->
+  blackjack.currentDealer() == player
+}
+
+val isCurrentPlayer = { blackjack: Blackjack, player: Player ->
+  player.equals(blackjack.currentDeal().currentHand()?.player)
+}
+
+val playerCanPlaceInitialBet = { blackjack: Blackjack, player: Player ->
+  blackjack.currentDeal().canPlaceInitialBet(player)
+}
+
+fun and(toReduce: List<(blackjack: Blackjack, player: Player) -> Boolean>)
+    : (blackjack: Blackjack, player: Player) -> Boolean = { blackjack: Blackjack, player: Player ->
+  toReduce.map { it.invoke(blackjack, player) }.reduce(Boolean::and)
+}

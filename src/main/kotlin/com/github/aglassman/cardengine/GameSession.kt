@@ -1,6 +1,7 @@
 package com.github.aglassman.cardengine
 
 import com.github.aglassman.cardengine.games.blackjack.Blackjack
+import com.github.aglassman.cardengine.games.blackjack.BlackjackGameOptions
 import com.github.aglassman.cardengine.games.crazyeights.CrazyEights
 import com.github.aglassman.cardengine.games.sheepshead.Sheepshead
 import com.github.aglassman.cardengine.games.sheepshead.SheepsheadGameOptions
@@ -16,7 +17,7 @@ class GameSession(
     val gameMap: Map<String, (players: List<Player>, gameConfigurations: Map<String, String>) -> Game> = mapOf(
         "sheepshead" to { players, gameConfigurations -> Sheepshead(players = players, gameOptions = SheepsheadGameOptions(gameConfigurations)) },
         "crazyeights" to { players, gameConfigurations -> CrazyEights(players = players) },
-        "blackjack" to { players, gameConfigurations -> Blackjack(players = players) }
+        "blackjack" to { players, gameConfigurations -> Blackjack(players = players, gameOptions = BlackjackGameOptions(gameConfigurations)) }
     )
   }
 

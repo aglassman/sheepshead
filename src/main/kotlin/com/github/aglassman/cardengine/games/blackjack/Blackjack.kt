@@ -7,7 +7,7 @@ import com.github.aglassman.cardengine.*
  *  by Walter B. Gibson
  */
 class Blackjack(
-    private val players: List<Player>,
+    players: List<Player>,
     private val deck: () -> Deck = { BlackjackDeck() },
     private val gameOptions: BlackjackGameOptions = BlackjackGameOptions(),
     private val emitter: EventEmitter = NoOpEmitter()
@@ -15,27 +15,54 @@ class Blackjack(
 
   override fun gameType() = "blackjack"
 
-  private val dealer = Player("dealer")
+  private val players: List<Player>
+
+  internal fun currentDealer(): Player = currentDeal.dealer
+
+
+  private var currentDeal: BlackjackDeal
 
   init {
     gameOptions.validate(players)
+
+    if(gameOptions.dealerStrategy == DealerStrategy.casino) {
+      this.players = listOf(Player("dealer")).plus(players)
+      currentDeal = BlackjackDeal(this.players.first(), deck())
+    } else {
+      TODO("Non casino play not yet implemented.")
+    }
   }
 
+  internal fun currentDeal(): BlackjackDeal = currentDeal
+
   override fun availableStates(): List<String> {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return listOf(
+        "hand",
+        "dealerHand")
   }
 
   override fun <T> state(key: String, forPlayer: Player?): T {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return availableStates()
+        .firstOrNull { it == key }
+        .let {
+          when(it) {
+            "hand" -> currentDeal()
+                .playerHand(forPlayer ?: throw GameStateException("State 'hand' requires a player to be specified."))
+                ?: throw GameStateException("")
+            "dealerHand" -> currentDeal()
+                .dealerHand()
+            else -> throw GameStateException("Currently Unsupported State")
+          } as T
+        }
+        ?: throw GameStateException("Unknown State: $key")
   }
 
   override fun currentPlayer(): Player {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return currentDeal().dealer
   }
 
   override fun availableActions() =
-      listOf(dealer)
-          .plus(players)
+      players
           .map { it to availableActions(it) }
           .toMap()
 
@@ -51,17 +78,17 @@ class Blackjack(
   }
 
   override fun actionParameterType(action: String): ParamType? {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return null
   }
 
   override fun <T> performAction(player: Player, action: String, parameters: Any?): T = try {
     val toPerform = Action.valueOf(action) ?: throw GameException("Unknown Action")
 
     if(!toPerform.actionAllowed(this, player)){
-      throw GameException("Action not allowed.")
+      throw GameException("Player: ${player.name} is not currently allowed to perform Action: $action.")
     }
 
-    toPerform.performAction(this, player) as T
+    toPerform.performAction(this, player, parameters) as T
   } catch (e: GameException) {
     throw e
   } catch (e: Exception) {

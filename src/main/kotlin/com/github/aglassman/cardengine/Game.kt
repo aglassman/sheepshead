@@ -62,6 +62,7 @@ interface Game: GameStateProvider, Serializable {
 }
 
 interface GameStateProvider {
+
   /**
    * List the available states for this game.
    */
